@@ -2,18 +2,26 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/chenmuyao/qooldown/config"
+	"github.com/chenmuyao/qooldown/internal/handler"
+	"github.com/chenmuyao/qooldown/internal/middleware"
 	"github.com/chenmuyao/qooldown/internal/repository"
+	"github.com/chenmuyao/qooldown/internal/service"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func main() {
-	server := gin.Default()
+	db := InitDB()
 
-	_ = InitDB()
+	server := InitWebServer(
+		InitGinMiddlewares(),
+		handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db))),
+	)
 
 	server.GET(
 		"/",
@@ -21,6 +29,38 @@ func main() {
 	)
 
 	server.Run(":8881")
+}
+
+func InitWebServer(
+	middlewares []gin.HandlerFunc,
+	userHandlers *handler.UserHandler,
+) *gin.Engine {
+	server := gin.Default()
+	server.Use(middlewares...)
+	userHandlers.RegisterRoutes(server)
+	return server
+}
+
+func InitGinMiddlewares() []gin.HandlerFunc {
+	return []gin.HandlerFunc{
+		cors.New(cors.Config{
+			AllowCredentials: true,
+			AllowHeaders:     []string{"Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"x-jwt-token"},
+			AllowAllOrigins:  true, // XXX: hack
+			MaxAge:           12 * time.Hour,
+		}),
+
+		useJWT(),
+	}
+}
+
+func useJWT() gin.HandlerFunc {
+	loginJWT := middleware.NewLoginJWT([]string{
+		"/users/signup",
+		"/users/login",
+	})
+	return loginJWT.CheckLogin()
 }
 
 func InitDB() *gorm.DB {
