@@ -6,9 +6,12 @@ test:
 dev:
 	@rm -f ./qooldown
 	@go mod tidy
-	@go build -o qooldown .
+	@go build -v -o qooldown .
 
-up: dev
+up:
+	@rm -f ./qooldown
+	@go mod tidy
+	@go build -o qooldown --tags=docker .
 	@docker compose up -d --build
 
 down:
