@@ -25,7 +25,7 @@ func main() {
 
 	server.GET(
 		"/",
-		func(ctx *gin.Context) { ctx.String(http.StatusOK, "Trop de bug -- Aurore Philip") },
+		func(ctx *gin.Context) { ctx.String(http.StatusOK, "Trop de bugs. -- Aurore Philip") },
 	)
 
 	server.Run(":8881")
