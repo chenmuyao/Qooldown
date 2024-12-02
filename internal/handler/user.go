@@ -34,6 +34,10 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	user.POST("/login", h.LoginJWT)
 }
 
+type loginData struct {
+	Token string `json:"token"`
+}
+
 func (h *UserHandler) SignUp(ctx *gin.Context) {
 	type SignUpReq struct {
 		Username string `json:"username"`
@@ -55,14 +59,16 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	})
 	switch err {
 	case nil:
-		token, err := h.getJWTToken(ctx, u.ID)
+		token, err := h.getJWTToken(u.ID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
 		}
 		ctx.JSON(http.StatusOK, Result{
 			Code: CodeOK,
 			Msg:  "signup success",
-			Data: token,
+			Data: loginData{
+				Token: token,
+			},
 		})
 	case service.ErrDuplicatedUser:
 		ctx.JSON(http.StatusBadRequest, Result{
@@ -92,14 +98,16 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 	u, err := h.svc.Login(ctx, req.Username, req.Password)
 	switch err {
 	case nil:
-		token, err := h.getJWTToken(ctx, u.ID)
+		token, err := h.getJWTToken(u.ID)
 		if err != nil {
 			return // error message is set
 		}
 		ctx.JSON(http.StatusOK, Result{
 			Code: CodeOK,
 			Msg:  "successful login",
-			Data: token,
+			Data: loginData{
+				Token: token,
+			},
 		})
 	case service.ErrInvalidUserOrPassword:
 		ctx.JSON(http.StatusBadRequest, Result{
@@ -117,7 +125,7 @@ func (h *UserHandler) getUserIDFromJWT(ctx *gin.Context) int64 {
 	return uc.UID
 }
 
-func (h *UserHandler) getJWTToken(ctx *gin.Context, uid int64) (string, error) {
+func (h *UserHandler) getJWTToken(uid int64) (string, error) {
 	uc := UserClaims{
 		UID: uid,
 		RegisteredClaims: jwt.RegisteredClaims{

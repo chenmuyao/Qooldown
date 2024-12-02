@@ -46,7 +46,6 @@ func InitGinMiddlewares() []gin.HandlerFunc {
 		cors.New(cors.Config{
 			AllowCredentials: true,
 			AllowHeaders:     []string{"Content-Type", "Authorization"},
-			ExposeHeaders:    []string{"x-jwt-token"},
 			AllowAllOrigins:  true, // XXX: hack
 			MaxAge:           12 * time.Hour,
 		}),
@@ -57,6 +56,7 @@ func InitGinMiddlewares() []gin.HandlerFunc {
 
 func useJWT() gin.HandlerFunc {
 	loginJWT := middleware.NewLoginJWT([]string{
+		"/",
 		"/users/signup",
 		"/users/login",
 	})
