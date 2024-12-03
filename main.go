@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -68,12 +69,23 @@ func useJWT() gin.HandlerFunc {
 }
 
 func InitDB() *gorm.DB {
-	db, err := gorm.Open(
-		mysql.Open(config.Config.DB.DSN),
-		&gorm.Config{},
-	)
+	var db *gorm.DB
+	var err error
+
+	retryTimes := 3
+	for range retryTimes {
+		db, err = gorm.Open(
+			mysql.Open(config.Config.DB.DSN),
+			&gorm.Config{},
+		)
+		if err != nil {
+			time.Sleep(3 * time.Second)
+			slog.Error("failed to connect to database", "err", err)
+		}
+	}
+
 	if err != nil {
-		panic("failed to connect database")
+		panic("failed to connect to database")
 	}
 
 	err = repository.InitTable(db)
