@@ -15,11 +15,13 @@ var (
 )
 
 type User struct {
-	ID        int64  `gorm:"primaryKey;autoIncrement"`
-	Username  string `gorm:"unique"`
-	Password  string
-	CreatedAt int64
-	UpdatedAt int64
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	ID        int64          `json:"id"         gorm:"primarykey;autoIncrement"`
+
+	Username string `gorm:"unique" json:"username"`
+	Password string `              json:"password"`
 }
 
 type UserRepository interface {
@@ -39,9 +41,6 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (repo *GORMUserRepository) Insert(ctx context.Context, u User) (User, error) {
-	now := time.Now().UnixMilli()
-	u.CreatedAt = now
-	u.UpdatedAt = now
 	res := repo.db.WithContext(ctx).Create(&u)
 	err := res.Error
 	if me, ok := err.(*mysql.MySQLError); ok {

@@ -75,6 +75,6 @@ func (m *LoginJWT) CheckLogin() gin.HandlerFunc {
 			}
 		}
 
-		ctx.Set("user", uc)
+		ctx.Set("uid", uc.UID)
 	}
 }

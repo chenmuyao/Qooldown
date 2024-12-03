@@ -59,7 +59,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	})
 	switch err {
 	case nil:
-		token, err := h.getJWTToken(u.ID)
+		token, err := h.getJWTToken(int64(u.ID))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
 		}
@@ -98,7 +98,7 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 	u, err := h.svc.Login(ctx, req.Username, req.Password)
 	switch err {
 	case nil:
-		token, err := h.getJWTToken(u.ID)
+		token, err := h.getJWTToken(int64(u.ID))
 		if err != nil {
 			return // error message is set
 		}

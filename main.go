@@ -23,6 +23,7 @@ func main() {
 		InitGinMiddlewares(),
 		handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db))),
 		handler.NewWebSocketHandler(),
+		handler.NewRetroHandler(service.NewRetroService(repository.NewRetroRepository(db))),
 	)
 
 	server.GET(
@@ -37,11 +38,13 @@ func InitWebServer(
 	middlewares []gin.HandlerFunc,
 	userHandlers *handler.UserHandler,
 	wsHandler *handler.WebSocketHandler,
+	retroHandlers *handler.RetroHandler,
 ) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHandlers.RegisterRoutes(server)
 	wsHandler.RegisterRoutes(server)
+	retroHandlers.RegisterRoutes(server)
 	return server
 }
 
