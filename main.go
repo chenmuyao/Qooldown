@@ -21,6 +21,7 @@ func main() {
 	server := InitWebServer(
 		InitGinMiddlewares(),
 		handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db))),
+		handler.NewWebSocketHandler(),
 	)
 
 	server.GET(
@@ -34,10 +35,12 @@ func main() {
 func InitWebServer(
 	middlewares []gin.HandlerFunc,
 	userHandlers *handler.UserHandler,
+	wsHandler *handler.WebSocketHandler,
 ) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHandlers.RegisterRoutes(server)
+	wsHandler.RegisterRoutes(server)
 	return server
 }
 
@@ -57,6 +60,7 @@ func InitGinMiddlewares() []gin.HandlerFunc {
 func useJWT() gin.HandlerFunc {
 	loginJWT := middleware.NewLoginJWT([]string{
 		"/",
+		"/ws",
 		"/users/signup",
 		"/users/login",
 	})
