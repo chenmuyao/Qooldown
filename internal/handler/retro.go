@@ -26,7 +26,10 @@ func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 	// TODO:
 	// templates.GET("/:id", h.GetTemplateByID)
 
-	// user := server.Group("/retros/")
+	retros := server.Group("/retros")
+	retros.POST("/", h.CreateRetro)
+	retros.GET("/", h.GetAllRetros)
+
 	// user.POST("/login", h.LoginJWT)
 	// user.GET("/retros", h.GetRetros)
 	// user.GET("/retros/:id", h.GetRetroByID)
@@ -96,4 +99,47 @@ func (h *RetroHandler) GetTemplates(ctx *gin.Context) {
 		Msg:  "create template success",
 		Data: t,
 	})
+}
+
+func (h *RetroHandler) DeleteTemplateByID(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) CreateRetro(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) GetAllRetros(ctx *gin.Context) {
+}
+
+// GetRetroByID returns everything relative to a retro
+func (h *RetroHandler) GetRetroByID(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) CreatePost(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) UpdatePost(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) DeletePost(ctx *gin.Context) {
+}
+
+// TODO: Nice to have ...
+
+func (h *RetroHandler) VotePostByID(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) GetTopVotePosts(ctx *gin.Context) {
+	// Top N
+}
+
+func (h *RetroHandler) AddPostResolution(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) ChangePostResolution(ctx *gin.Context) {
+}
+
+func (h *RetroHandler) DeletePostResolution(ctx *gin.Context) {
 }

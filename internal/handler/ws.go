@@ -48,6 +48,9 @@ var clients = make(map[WebSocketConnection]string)
 
 var wsChan = make(chan WsPayload)
 
+// TODO: 1. Add retro id and user control. One id, when connection
+// Cache to hold retroID:clients pair.
+
 func (h *WebSocketHandler) WsEndPoint(ctx *gin.Context) {
 	ws, err := upgradeConnection.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
