@@ -26,3 +26,7 @@ go.work.sum
 
 # backend custom
 qooldown
+
+# frontend packages
+frontend/node_modules
+frontend/npm-debug.log

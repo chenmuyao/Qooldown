@@ -16,5 +16,9 @@ make rundev # Run a local qooldown instance on localhost:9991
 
 make down # destroy everything
 
+npm start # inside frontend directory will launch react server
+
+npm run format # inside frontend directory will format files with prettier
+
 # TODO: I might add a build step to just update qooldown binary
 ```
