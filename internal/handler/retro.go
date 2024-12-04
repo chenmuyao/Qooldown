@@ -22,8 +22,9 @@ func NewRetroHandler(svc service.RetroService) *RetroHandler {
 func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 	templates := server.Group("/templates")
 	templates.POST("/", h.CreateTemplate)
+	templates.GET("/", h.GetTemplates)
+	// TODO:
 	// templates.GET("/:id", h.GetTemplateByID)
-	// templates.GET("/", h.GetTemplates)
 
 	// user := server.Group("/retros/")
 	// user.POST("/login", h.LoginJWT)
@@ -79,5 +80,20 @@ func (h *RetroHandler) CreateTemplate(ctx *gin.Context) {
 		Code: CodeOK,
 		Msg:  "create template success",
 		Data: t, // ID, Name
+	})
+}
+
+func (h *RetroHandler) GetTemplates(ctx *gin.Context) {
+	// TODO: Pagination not handled
+	t, err := h.svc.GetTemplates(ctx)
+	if err != nil {
+		slog.Error("get template", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Code: CodeOK,
+		Msg:  "create template success",
+		Data: t,
 	})
 }

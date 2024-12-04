@@ -8,6 +8,7 @@ import (
 
 type RetroService interface {
 	CreateTemplate(ctx context.Context, template repository.Template) (repository.Template, error)
+	GetTemplates(ctx context.Context) ([]repository.Template, error)
 }
 
 type retroService struct {
@@ -25,4 +26,8 @@ func (r *retroService) CreateTemplate(
 	template repository.Template,
 ) (repository.Template, error) {
 	return r.repo.InsertTemplate(ctx, template)
+}
+
+func (r *retroService) GetTemplates(ctx context.Context) ([]repository.Template, error) {
+	return r.repo.GetTemplates(ctx)
 }

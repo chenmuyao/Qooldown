@@ -36,10 +36,8 @@ type Question struct {
 }
 
 type RetroRepository interface {
-	InsertTemplate(
-		ctx context.Context,
-		t Template,
-	) (Template, error)
+	InsertTemplate(ctx context.Context, t Template) (Template, error)
+	GetTemplates(ctx context.Context) ([]Template, error)
 }
 
 type GORMRetroRepository struct {
@@ -57,5 +55,11 @@ func (repo *GORMRetroRepository) InsertTemplate(
 	t Template,
 ) (Template, error) {
 	err := repo.db.Create(&t).Error
+	return t, err
+}
+
+func (repo *GORMRetroRepository) GetTemplates(ctx context.Context) ([]Template, error) {
+	var t []Template
+	err := repo.db.Find(&t).Error
 	return t, err
 }
