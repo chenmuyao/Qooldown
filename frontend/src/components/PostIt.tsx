@@ -29,7 +29,7 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
     // Ici, vous pourriez ajouter l'émission d'un événement socket
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmDelete = window.confirm(
       "Voulez-vous vraiment supprimer ce post-it ?",
     );
@@ -38,7 +38,26 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
         type: "DELETE_POSTIT",
         payload: { questionId, postItId: id }, // Ajout de questionId dans l'action
       });
-      // TODO emit ws
+      const token = localStorage.getItem("token");
+      try {
+        console.log(id);
+        const response = await fetch(`/postits/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete postit.");
+        }
+
+        const data = await response.json();
+        console.log(data);
+      } catch (err: any) {
+        console.error("Error:", err);
+      }
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer } from "react";
+import PostIt from "../components/PostIt";
 
 // Structure d'un Post-it
 interface PostIt {
@@ -21,7 +22,10 @@ interface RetroState {
 
 // Actions possibles pour modifier l'état
 type Action =
-  | { type: "ADD_POSTIT"; payload: { questionId: number; content: string } }
+  | {
+      type: "ADD_POSTIT";
+      payload: { id: number; questionId: number; content: string };
+    }
   | {
       type: "UPDATE_POSTIT_CONTENT";
       payload: { questionId: number; postItId: string; content: string };
@@ -51,7 +55,7 @@ const RetroContext = createContext<{
 const retroReducer = (state: RetroState, action: Action): RetroState => {
   switch (action.type) {
     case "ADD_POSTIT": {
-      const { questionId, content } = action.payload;
+      const { id, questionId, content } = action.payload;
       return {
         ...state,
         questions: state.questions.map((question) =>
@@ -61,7 +65,7 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                 postIts: [
                   ...question.postIts,
                   {
-                    id: `postit-${Date.now()}`,
+                    id: id.toString(),
                     content,
                     hidden: false, // Visible par défaut
                   },

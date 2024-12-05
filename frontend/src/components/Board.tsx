@@ -5,12 +5,38 @@ import PostIt from "./PostIt";
 const Board: React.FC = () => {
   const { state, dispatch } = useRetro();
 
-  const handleAddPostIt = (questionId: number, content: string) => {
+  const handleAddPostIt = async (questionId: number, content: string) => {
+    var id = 0;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/postits", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question_id: questionId,
+          content: content,
+          is_visible: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch templates.");
+      }
+
+      const data = await response.json();
+      console.log(data);
+      id = data.data.id;
+    } catch (err: any) {
+      console.error("Error:", err);
+    }
+    console.log(id);
     dispatch({
       type: "ADD_POSTIT",
-      payload: { questionId, content },
+      payload: { id, questionId, content },
     });
-    // Ici, vous pourriez ajouter l'émission d'un événement socket
   };
 
   return (
@@ -22,7 +48,7 @@ const Board: React.FC = () => {
         >
           <div
             className="font-semibold text-gray-700 mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded"
-            onClick={() => handleAddPostIt(question.id, question.content)}
+            onClick={() => handleAddPostIt(question.id, "")}
           >
             {question.content}
           </div>
