@@ -38,6 +38,7 @@ func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 	postits.POST("/", h.CreatePostit)
 	postits.POST("/:id", h.UpdatePostitByID)
 	postits.DELETE("/:id", h.DeletePostitByID)
+	postits.POST("/:id/vote", h.VotePostitByID)
 }
 
 // {{{ Templates
@@ -392,10 +393,21 @@ func (h *RetroHandler) CreatePostit(ctx *gin.Context) {
 
 func (h *RetroHandler) UpdatePostitByID(ctx *gin.Context) {
 	// type Req struct {
-	// 	ID        int64  `json:"id"         binding:"required"`
 	// 	Content   string `json:"content"`
 	// 	IsVisible bool   `json:"is_visible"`
 	// }
+
+	idStr := ctx.Param("id")
+
+	pid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong postit id", "id", pid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong postit id",
+		})
+		return
+	}
 
 	var req service.PostitUpdate
 
@@ -411,7 +423,7 @@ func (h *RetroHandler) UpdatePostitByID(ctx *gin.Context) {
 		return
 	}
 
-	_, err := h.svc.UpdatePostit(ctx, req, uid.(int64))
+	_, err = h.svc.UpdatePostit(ctx, int64(pid), req, uid.(int64))
 	switch err {
 	case service.ErrNoAccess:
 		slog.Error("no access", "err", err)
@@ -421,7 +433,7 @@ func (h *RetroHandler) UpdatePostitByID(ctx *gin.Context) {
 		})
 		return
 	case service.ErrIDNotFound:
-		slog.Error("prostit id not found", "id", req.ID, "err", err)
+		slog.Error("prostit id not found", "id", pid, "err", err)
 		ctx.JSON(http.StatusBadRequest, Result{
 			Code: CodeUserSide,
 			Msg:  "id not found",
@@ -489,10 +501,49 @@ func (h *RetroHandler) DeletePostitByID(ctx *gin.Context) {
 	}
 }
 
-// TODO: Nice to have ...
-
 func (h *RetroHandler) VotePostitByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	pid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong postit id", "id", pid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong postit id",
+		})
+		return
+	}
+
+	err = h.svc.VotePostitByID(ctx, int64(pid))
+	switch err {
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("prostit id not found", "id", pid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "vote for postit success",
+		})
+		return
+	default:
+		slog.Error("vote for postit", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
 }
+
+// TODO: Nice to have ...
 
 func (h *RetroHandler) GetTopVotePostits(ctx *gin.Context) {
 	// Top N

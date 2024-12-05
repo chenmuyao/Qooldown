@@ -26,7 +26,13 @@ type RetroService interface {
 
 	CreatePostit(ctx context.Context, postit PostitCreate, uid int64) (repository.Postit, error)
 	DeletePostitByID(ctx context.Context, pid int64, uid int64) error
-	UpdatePostit(ctx context.Context, postit PostitUpdate, uid int64) (repository.Postit, error)
+	UpdatePostit(
+		ctx context.Context,
+		pid int64,
+		postit PostitUpdate,
+		uid int64,
+	) (repository.Postit, error)
+	VotePostitByID(ctx context.Context, pid int64) error
 }
 
 type retroService struct {
@@ -147,7 +153,6 @@ type PostitCreate struct {
 }
 
 type PostitUpdate struct {
-	ID        int64  `json:"id"         binding:"required"`
 	Content   string `json:"content"`
 	IsVisible bool   `json:"is_visible"`
 }
@@ -168,10 +173,11 @@ func (r *retroService) CreatePostit(
 
 func (r *retroService) UpdatePostit(
 	ctx context.Context,
+	pid int64,
 	postit PostitUpdate,
 	uid int64,
 ) (repository.Postit, error) {
-	p, err := r.repo.GetPostitByID(ctx, postit.ID)
+	p, err := r.repo.GetPostitByID(ctx, pid)
 	if err != nil {
 		return repository.Postit{}, err
 	}
@@ -197,6 +203,10 @@ func (r *retroService) DeletePostitByID(ctx context.Context, pid int64, uid int6
 	}
 
 	return r.repo.DeletePostitByID(ctx, pid)
+}
+
+func (r *retroService) VotePostitByID(ctx context.Context, pid int64) error {
+	return r.repo.VotePostitByID(ctx, pid)
 }
 
 // }}}

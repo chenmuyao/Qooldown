@@ -108,6 +108,7 @@ type RetroRepository interface {
 	GetPostitByID(ctx context.Context, pid int64) (Postit, error)
 	DeletePostitByID(ctx context.Context, pid int64) error
 	UpdatePostit(ctx context.Context, p Postit) (Postit, error)
+	VotePostitByID(ctx context.Context, pid int64) error
 }
 
 type GORMRetroRepository struct {
@@ -166,7 +167,8 @@ func (repo *GORMRetroRepository) CreateRetro(
 	var retro Retro
 	err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Get template
-		t, err := repo.GetTemplateByID(ctx, tid)
+		dao := NewRetroRepository(tx)
+		t, err := dao.GetTemplateByID(ctx, tid)
 		if err != nil {
 			return err
 		}
@@ -240,6 +242,24 @@ func (repo *GORMRetroRepository) DeletePostitByID(ctx context.Context, pid int64
 func (repo *GORMRetroRepository) UpdatePostit(ctx context.Context, p Postit) (Postit, error) {
 	err := repo.db.WithContext(ctx).Save(&p).Error
 	return p, err
+}
+
+func (repo *GORMRetroRepository) VotePostitByID(ctx context.Context, pid int64) error {
+	err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		dao := NewRetroRepository(tx)
+		p, err := dao.GetPostitByID(ctx, pid)
+		if err != nil {
+			return err
+		}
+
+		p.Votes++
+		_, err = dao.UpdatePostit(ctx, p)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
 }
 
 // }}}
