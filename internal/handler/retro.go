@@ -58,10 +58,10 @@ func (h *RetroHandler) CreateTemplate(ctx *gin.Context) {
 		return
 	}
 
-	var questions []repository.Question
+	var questions []repository.TemplateQuestion
 
 	for _, content := range req.Questions {
-		question := repository.Question{
+		question := repository.TemplateQuestion{
 			Content: content,
 		}
 		questions = append(questions, question)
