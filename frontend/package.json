@@ -43,6 +43,7 @@
       "last 1 safari version"
     ]
   },
+  "proxy": "http://localhost:9991",
   "devDependencies": {
     "@types/react-beautiful-dnd": "^13.1.8",
     "autoprefixer": "^10.4.20",

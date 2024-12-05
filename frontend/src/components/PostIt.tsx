@@ -58,10 +58,10 @@ const PostIt: React.FC<PostItProps> = ({
           className="absolute bg-yellow-200 border border-yellow-400 rounded shadow p-2 cursor-move"
           style={{
             ...provided.draggableProps.style, // Positionnement par react-beautiful-dnd
-            width: "150px",
-            minHeight: "100px",
-            left: provided.draggableProps.style ? undefined : `${posX}px`,
-            top: provided.draggableProps.style ? undefined : `${posY}px`,
+            //width: "150px",
+            //minHeight: "100px",
+            // left: provided.draggableProps.style ? undefined : `${posX}px`,
+            //top: provided.draggableProps.style ? undefined : `${posY}px`,
           }}
         >
           {/* Contenu */}

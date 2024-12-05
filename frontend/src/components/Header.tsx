@@ -1,13 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <header className="bg-blue-500 text-white p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo ou Titre */}
         <h1 className="text-2xl font-bold">
-          <Link to="/">Agile Retro</Link>
+          <Link to="/">Qooldown</Link>
         </h1>
 
         {/* Navigation */}
@@ -29,7 +32,7 @@ const Header: React.FC = () => {
         {/* Bouton de connexion/déconnexion */}
         <div>
           <button
-            onClick={() => alert("Connexion/Déconnexion")}
+            onClick={() => navigate("/register")}
             className="bg-white text-blue-500 px-4 py-2 rounded hover:bg-gray-100"
           >
             Connexion
