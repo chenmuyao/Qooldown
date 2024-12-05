@@ -22,6 +22,8 @@ type RetroService interface {
 	GetRetros(ctx context.Context) ([]repository.Retro, error)
 	GetRetroByID(ctx context.Context, tid int64, uid int64) (repository.Retro, error)
 	DeleteRetroByID(ctx context.Context, tid int64, uid int64) error
+
+	CreatePostit(ctx context.Context, postit Postit, uid int64) (repository.Postit, error)
 }
 
 type retroService struct {
@@ -120,6 +122,29 @@ func (r *retroService) GetRetroByID(
 		return repository.Retro{}, err
 	}
 	return t, nil
+}
+
+// }}}
+// {{{ Postit
+
+type Postit struct {
+	QuestionID int64  `json:"question_id" binding:"required"`
+	Content    string `json:"content"`
+	IsVisible  bool   `json:"is_visible"`
+}
+
+func (r *retroService) CreatePostit(
+	ctx context.Context,
+	postit Postit,
+	uid int64,
+) (repository.Postit, error) {
+	model := repository.Postit{
+		UserID:     uid,
+		QuestionID: postit.QuestionID,
+		Content:    postit.Content,
+		IsVisible:  postit.IsVisible,
+	}
+	return r.repo.CreatePostit(ctx, model)
 }
 
 // }}}

@@ -19,7 +19,6 @@ type Template struct {
 
 	// belongs to
 	UserID int64 `json:"owner_id"`
-	User   User  `json:"owner"`
 
 	// has many
 	Questions []TemplateQuestion `json:"questions"`
@@ -65,7 +64,6 @@ type Retro struct {
 
 	// belongs to
 	UserID int64 `json:"owner_id"`
-	User   User  `json:"owner"`
 
 	// Questions are copied from the template
 	// has many
@@ -80,7 +78,6 @@ type Postit struct {
 
 	// belongs to
 	UserID int64 `json:"owner_id"`
-	User   User  `json:"owner"`
 
 	// belongs to
 	QuestionID int64 `json:"question_id"`
@@ -103,6 +100,8 @@ type RetroRepository interface {
 	GetRetros(ctx context.Context) ([]Retro, error)
 	GetRetroByID(ctx context.Context, rid int64) (Retro, error)
 	DeleteRetroByID(ctx context.Context, rid int64) error
+
+	CreatePostit(ctx context.Context, p Postit) (Postit, error)
 }
 
 type GORMRetroRepository struct {
@@ -204,6 +203,14 @@ func (repo *GORMRetroRepository) GetRetroByID(ctx context.Context, rid int64) (R
 func (repo *GORMRetroRepository) DeleteRetroByID(ctx context.Context, rid int64) error {
 	err := repo.db.WithContext(ctx).Delete(&Retro{}, rid).Error
 	return err
+}
+
+// }}}
+// {{{ Postit
+
+func (repo *GORMRetroRepository) CreatePostit(ctx context.Context, p Postit) (Postit, error) {
+	err := repo.db.WithContext(ctx).Create(&p).Error
+	return p, err
 }
 
 // }}}

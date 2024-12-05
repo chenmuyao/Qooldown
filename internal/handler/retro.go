@@ -33,6 +33,11 @@ func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 	retros.GET("/", h.GetRetros)
 	retros.GET("/:id", h.GetRetroByID)
 	retros.DELETE("/:id", h.DeleteRetroByID)
+
+	postits := server.Group("/postits")
+	postits.POST("/", h.CreatePostit)
+	postits.POST("/:id", h.UpdatePostitByID)
+	postits.DELETE("/:id", h.DeletePostitByID)
 }
 
 // {{{ Templates
@@ -350,29 +355,61 @@ func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
 	}
 }
 
-func (h *RetroHandler) CreatePost(ctx *gin.Context) {
+func (h *RetroHandler) CreatePostit(ctx *gin.Context) {
+	// type Req struct {
+	// 	QuestionID int64  `json:"question_id" binding:"required"`
+	// 	Content    string `json:"content"`
+	// 	IsVisible  bool   `json:"is_visible"`
+	// }
+
+	var req service.Postit
+
+	if err := ctx.Bind(&req); err != nil {
+		slog.Error("bad request", "err", err)
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	r, err := h.svc.CreatePostit(ctx, req, uid.(int64))
+	if err != nil {
+		slog.Error("create postit", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, Result{
+		Code: CodeOK,
+		Msg:  "create postit success",
+		Data: r, // ID, Name
+	})
 }
 
-func (h *RetroHandler) UpdatePost(ctx *gin.Context) {
+func (h *RetroHandler) UpdatePostitByID(ctx *gin.Context) {
 }
 
-func (h *RetroHandler) DeletePost(ctx *gin.Context) {
+func (h *RetroHandler) DeletePostitByID(ctx *gin.Context) {
 }
 
 // TODO: Nice to have ...
 
-func (h *RetroHandler) VotePostByID(ctx *gin.Context) {
+func (h *RetroHandler) VotePostitByID(ctx *gin.Context) {
 }
 
-func (h *RetroHandler) GetTopVotePosts(ctx *gin.Context) {
+func (h *RetroHandler) GetTopVotePostits(ctx *gin.Context) {
 	// Top N
 }
 
-func (h *RetroHandler) AddPostResolution(ctx *gin.Context) {
+func (h *RetroHandler) AddPostitResolution(ctx *gin.Context) {
 }
 
-func (h *RetroHandler) ChangePostResolution(ctx *gin.Context) {
+func (h *RetroHandler) ChangePostitResolution(ctx *gin.Context) {
 }
 
-func (h *RetroHandler) DeletePostResolution(ctx *gin.Context) {
+func (h *RetroHandler) DeletePostitResolution(ctx *gin.Context) {
 }
