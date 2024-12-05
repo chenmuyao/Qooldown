@@ -123,7 +123,7 @@ func (repo *GORMRetroRepository) GetTemplates(ctx context.Context) ([]Template, 
 
 func (repo *GORMRetroRepository) GetTemplateByID(ctx context.Context, tid int64) (Template, error) {
 	var t Template
-	err := repo.db.WithContext(ctx).Where("id = ?", tid).First(&t).Error
+	err := repo.db.WithContext(ctx).Preload("Questions").Where("id = ?", tid).First(&t).Error
 	return t, err
 }
 
