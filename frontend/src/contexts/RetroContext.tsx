@@ -103,24 +103,27 @@ export const RetroProvider: React.FC<{ children: React.ReactNode }> = ({
         };
 
       case "MOVE_POSTIT":
-        const newPostIts = Array.from(state.postIts);
-        const [reorderedItem] = newPostIts.splice(
+        const reorderedPostIts = Array.from(state.postIts);
+        const [movedPostIt] = reorderedPostIts.splice(
           action.payload.sourceIndex,
           1,
         );
+        reorderedPostIts.splice(
+          action.payload.destinationIndex,
+          0,
+          movedPostIt,
+        );
 
-        // Calculer les nouvelles positions relatives
-        const offsetX = 20; // Décalage horizontal entre les post-its
-        const offsetY = 20; // Décalage vertical entre les post-its
-
-        reorderedItem.posX = action.payload.destinationIndex * offsetX;
-        reorderedItem.posY = action.payload.destinationIndex * offsetY;
-
-        newPostIts.splice(action.payload.destinationIndex, 0, reorderedItem);
+        // Calculer les nouvelles positions uniquement si nécessaire
+        const updatedPostIts = reorderedPostIts.map((postIt, index) => ({
+          ...postIt,
+          posX: index * 150, // Exemple de recalcul des positions
+          posY: 50, // Alignement sur une même ligne
+        }));
 
         return {
           ...state,
-          postIts: newPostIts,
+          postIts: updatedPostIts,
         };
       default:
         return state;

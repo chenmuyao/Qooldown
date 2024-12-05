@@ -10,19 +10,19 @@ const Board: React.FC = () => {
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
-    const { source, destination } = result;
+    console.log("Source index:", result.source.index);
+    console.log("Destination index:", result.destination.index);
 
-    if (source.index === destination.index) return;
+    if (result.source.index === result.destination.index) return;
 
     dispatch({
       type: "MOVE_POSTIT",
       payload: {
-        sourceIndex: source.index,
-        destinationIndex: destination.index,
+        sourceIndex: result.source.index,
+        destinationIndex: result.destination.index,
       },
     });
   };
-
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="board">
