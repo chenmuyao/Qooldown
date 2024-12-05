@@ -42,8 +42,6 @@ type Question struct {
 	ID        int64          `json:"id"         gorm:"primarykey;autoIncrement"`
 
 	Content string `json:"content"`
-	PosX    int64  `json:"pos_x"`
-	LenX    int64  `json:"len_x"`
 
 	// fk
 	RetroID int64 `json:"retro_id"`
@@ -84,13 +82,8 @@ type Postit struct {
 	Votes int `json:"votes"`
 
 	// Content
-	Content string `json:"content"`
-
-	// Posision
-	PosX int64 `json:"pos_x"`
-	PosY int64 `json:"pos_y"`
-	LenX int64 `json:"len_x"`
-	LenY int64 `json:"len_y"`
+	Content   string `json:"content"`
+	IsVisible bool   `json:"is_visible"`
 }
 
 type RetroRepository interface {
