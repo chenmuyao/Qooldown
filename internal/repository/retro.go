@@ -19,6 +19,7 @@ type Template struct {
 
 	// belongs to
 	UserID int64 `json:"owner_id"`
+	User   User  `json:"owner"`
 
 	// has many
 	Questions []TemplateQuestion `json:"questions"`
@@ -64,6 +65,7 @@ type Retro struct {
 
 	// belongs to
 	UserID int64 `json:"owner_id"`
+	User   User  `json:"owner"`
 
 	// Questions are copied from the template
 	// has many
@@ -78,6 +80,7 @@ type Postit struct {
 
 	// belongs to
 	UserID int64 `json:"owner_id"`
+	User   User  `json:"owner"`
 
 	// belongs to
 	QuestionID int64 `json:"question_id"`
@@ -131,13 +134,18 @@ func (repo *GORMRetroRepository) UpdateTemplate(ctx context.Context, t Template)
 
 func (repo *GORMRetroRepository) GetTemplates(ctx context.Context) ([]Template, error) {
 	var t []Template
-	err := repo.db.WithContext(ctx).Preload("Questions").Find(&t).Error
+	err := repo.db.WithContext(ctx).Preload("Questions").Preload("User").Find(&t).Error
 	return t, err
 }
 
 func (repo *GORMRetroRepository) GetTemplateByID(ctx context.Context, tid int64) (Template, error) {
 	var t Template
-	err := repo.db.WithContext(ctx).Preload("Questions").Where("id = ?", tid).First(&t).Error
+	err := repo.db.WithContext(ctx).
+		Preload("Questions").
+		Preload("User").
+		Where("id = ?", tid).
+		First(&t).
+		Error
 	return t, err
 }
 
@@ -186,19 +194,21 @@ func (repo *GORMRetroRepository) CreateRetro(
 
 func (repo *GORMRetroRepository) GetRetros(ctx context.Context) ([]Retro, error) {
 	var r []Retro
-	err := repo.db.WithContext(ctx).Find(&r).Error
+	err := repo.db.WithContext(ctx).Preload("User").Find(&r).Error
 	return r, err
 }
 
 func (repo *GORMRetroRepository) GetRetroByID(ctx context.Context, rid int64) (Retro, error) {
 	var r Retro
 	err := repo.db.WithContext(ctx).
+		Preload("User").
 		Preload("Questions", func(db *gorm.DB) *gorm.DB {
 			return db.Order("id ASC")
 		}).
 		Preload("Questions.Postits", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")
 		}).
+		Preload("Questions.Postits.User").
 		Where("id = ?", rid).First(&r).Error
 	return r, err
 }
@@ -218,7 +228,7 @@ func (repo *GORMRetroRepository) CreatePostit(ctx context.Context, p Postit) (Po
 
 func (repo *GORMRetroRepository) GetPostitByID(ctx context.Context, pid int64) (Postit, error) {
 	var p Postit
-	err := repo.db.WithContext(ctx).Where("id = ?", pid).First(&p).Error
+	err := repo.db.WithContext(ctx).Preload("User").Where("id = ?", pid).First(&p).Error
 	return p, err
 }
 

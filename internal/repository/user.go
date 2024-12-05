@@ -21,7 +21,7 @@ type User struct {
 	ID        int64          `json:"id"         gorm:"primarykey;autoIncrement"`
 
 	Username string `gorm:"unique" json:"username"`
-	Password string `              json:"password"`
+	Password string `              json:"-"`
 }
 
 type UserRepository interface {
