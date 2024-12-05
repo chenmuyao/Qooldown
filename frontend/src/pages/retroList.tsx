@@ -75,6 +75,7 @@ const RetroListPage: React.FC = () => {
                   <h2 className="text-lg font-semibold text-orange-700">
                     {retro.id}
                   </h2>
+                  <p className="text-sm text-gray-700">{retro.name}</p>
                 </div>
                 <button
                   className="join-retro-button bg-green-500 text-white py-1 px-4 rounded-full hover:bg-green-600 transition"
