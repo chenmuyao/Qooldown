@@ -3,6 +3,7 @@ package handler
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/chenmuyao/qooldown/internal/repository"
 	"github.com/chenmuyao/qooldown/internal/service"
@@ -23,17 +24,16 @@ func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 	templates := server.Group("/templates")
 	templates.POST("/", h.CreateTemplate)
 	templates.GET("/", h.GetTemplates)
-	// TODO:
-	// templates.GET("/:id", h.GetTemplateByID)
+	templates.GET("/:id", h.GetTemplateByID)
+	templates.DELETE("/:id", h.DeleteTemplateByID)
+	// templates.POST("/:id", h.EditTemplateByID)
 
 	retros := server.Group("/retros")
 	retros.POST("/", h.CreateRetro)
 	retros.GET("/", h.GetAllRetros)
-
-	// user.POST("/login", h.LoginJWT)
-	// user.GET("/retros", h.GetRetros)
-	// user.GET("/retros/:id", h.GetRetroByID)
 }
+
+// {{{ Templates
 
 func (h *RetroHandler) CreateTemplate(ctx *gin.Context) {
 	type Req struct {
@@ -102,7 +102,104 @@ func (h *RetroHandler) GetTemplates(ctx *gin.Context) {
 }
 
 func (h *RetroHandler) DeleteTemplateByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	tid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong template id", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong template id",
+		})
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	err = h.svc.DeleteTemplateByID(ctx, int64(tid), uid.(int64))
+	switch err {
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("template id not found", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "delete template success",
+		})
+		return
+	default:
+		slog.Error("delete template", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
 }
+
+func (h *RetroHandler) GetTemplateByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	tid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong template id", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong template id",
+		})
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	t, err := h.svc.GetTemplateByID(ctx, int64(tid), uid.(int64))
+	switch err {
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "get template success",
+			Data: t,
+		})
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("template id not found", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	default:
+		slog.Error("get template", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+}
+
+// }}}
 
 func (h *RetroHandler) CreateRetro(ctx *gin.Context) {
 }

@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrIDNotFound = gorm.ErrRecordNotFound
+
 type Template struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -89,6 +91,8 @@ type Postit struct {
 type RetroRepository interface {
 	InsertTemplate(ctx context.Context, t Template) (Template, error)
 	GetTemplates(ctx context.Context) ([]Template, error)
+	GetTemplateByID(ctx context.Context, tid int64) (Template, error)
+	DeleteTemplateByID(ctx context.Context, tid int64) error
 }
 
 type GORMRetroRepository struct {
@@ -101,16 +105,31 @@ func NewRetroRepository(db *gorm.DB) RetroRepository {
 	}
 }
 
+// {{{ Templates
+
 func (repo *GORMRetroRepository) InsertTemplate(
 	ctx context.Context,
 	t Template,
 ) (Template, error) {
-	err := repo.db.Create(&t).Error
+	err := repo.db.WithContext(ctx).Create(&t).Error
 	return t, err
 }
 
 func (repo *GORMRetroRepository) GetTemplates(ctx context.Context) ([]Template, error) {
 	var t []Template
-	err := repo.db.Find(&t).Error
+	err := repo.db.WithContext(ctx).Preload("Questions").Find(&t).Error
 	return t, err
 }
+
+func (repo *GORMRetroRepository) GetTemplateByID(ctx context.Context, tid int64) (Template, error) {
+	var t Template
+	err := repo.db.WithContext(ctx).Where("id = ?", tid).First(&t).Error
+	return t, err
+}
+
+func (repo *GORMRetroRepository) DeleteTemplateByID(ctx context.Context, tid int64) error {
+	err := repo.db.WithContext(ctx).Delete(&Template{}, tid).Error
+	return err
+}
+
+// }}}
