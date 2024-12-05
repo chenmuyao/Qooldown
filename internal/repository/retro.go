@@ -48,7 +48,7 @@ type Question struct {
 	RetroID int64 `json:"retro_id"`
 
 	// has many
-	Postits []Postit `json:"postits"`
+	Postits []Postit `json:"postIts"`
 }
 
 type Retro struct {
@@ -102,6 +102,9 @@ type RetroRepository interface {
 	DeleteRetroByID(ctx context.Context, rid int64) error
 
 	CreatePostit(ctx context.Context, p Postit) (Postit, error)
+	GetPostitByID(ctx context.Context, pid int64) (Postit, error)
+	DeletePostitByID(ctx context.Context, pid int64) error
+	UpdatePostit(ctx context.Context, p Postit) (Postit, error)
 }
 
 type GORMRetroRepository struct {
@@ -210,6 +213,22 @@ func (repo *GORMRetroRepository) DeleteRetroByID(ctx context.Context, rid int64)
 
 func (repo *GORMRetroRepository) CreatePostit(ctx context.Context, p Postit) (Postit, error) {
 	err := repo.db.WithContext(ctx).Create(&p).Error
+	return p, err
+}
+
+func (repo *GORMRetroRepository) GetPostitByID(ctx context.Context, pid int64) (Postit, error) {
+	var p Postit
+	err := repo.db.WithContext(ctx).Where("id = ?", pid).First(&p).Error
+	return p, err
+}
+
+func (repo *GORMRetroRepository) DeletePostitByID(ctx context.Context, pid int64) error {
+	err := repo.db.WithContext(ctx).Delete(&Postit{}, pid).Error
+	return err
+}
+
+func (repo *GORMRetroRepository) UpdatePostit(ctx context.Context, p Postit) (Postit, error) {
+	err := repo.db.WithContext(ctx).Save(&p).Error
 	return p, err
 }
 

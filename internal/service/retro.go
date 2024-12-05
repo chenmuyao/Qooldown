@@ -23,7 +23,9 @@ type RetroService interface {
 	GetRetroByID(ctx context.Context, tid int64, uid int64) (repository.Retro, error)
 	DeleteRetroByID(ctx context.Context, tid int64, uid int64) error
 
-	CreatePostit(ctx context.Context, postit Postit, uid int64) (repository.Postit, error)
+	CreatePostit(ctx context.Context, postit PostitCreate, uid int64) (repository.Postit, error)
+	DeletePostitByID(ctx context.Context, pid int64, uid int64) error
+	UpdatePostit(ctx context.Context, postit PostitUpdate, uid int64) (repository.Postit, error)
 }
 
 type retroService struct {
@@ -127,15 +129,21 @@ func (r *retroService) GetRetroByID(
 // }}}
 // {{{ Postit
 
-type Postit struct {
+type PostitCreate struct {
 	QuestionID int64  `json:"question_id" binding:"required"`
 	Content    string `json:"content"`
 	IsVisible  bool   `json:"is_visible"`
 }
 
+type PostitUpdate struct {
+	ID        int64  `json:"id"         binding:"required"`
+	Content   string `json:"content"`
+	IsVisible bool   `json:"is_visible"`
+}
+
 func (r *retroService) CreatePostit(
 	ctx context.Context,
-	postit Postit,
+	postit PostitCreate,
 	uid int64,
 ) (repository.Postit, error) {
 	model := repository.Postit{
@@ -145,6 +153,39 @@ func (r *retroService) CreatePostit(
 		IsVisible:  postit.IsVisible,
 	}
 	return r.repo.CreatePostit(ctx, model)
+}
+
+func (r *retroService) UpdatePostit(
+	ctx context.Context,
+	postit PostitUpdate,
+	uid int64,
+) (repository.Postit, error) {
+	p, err := r.repo.GetPostitByID(ctx, postit.ID)
+	if err != nil {
+		return repository.Postit{}, err
+	}
+	// compare the owner
+	if p.UserID != uid {
+		return repository.Postit{}, ErrNoAccess
+	}
+
+	p.Content = postit.Content
+	p.IsVisible = postit.IsVisible
+
+	return r.repo.UpdatePostit(ctx, p)
+}
+
+func (r *retroService) DeletePostitByID(ctx context.Context, pid int64, uid int64) error {
+	p, err := r.repo.GetPostitByID(ctx, pid)
+	if err != nil {
+		return err
+	}
+	// compare the owner
+	if p.UserID != uid {
+		return ErrNoAccess
+	}
+
+	return r.repo.DeletePostitByID(ctx, pid)
 }
 
 // }}}

@@ -260,9 +260,9 @@ func (h *RetroHandler) GetRetros(ctx *gin.Context) {
 func (h *RetroHandler) GetRetroByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
-	tid, err := strconv.Atoi(idStr)
+	rid, err := strconv.Atoi(idStr)
 	if err != nil {
-		slog.Error("wrong retro id", "id", tid, "err", err)
+		slog.Error("wrong retro id", "id", rid, "err", err)
 		ctx.JSON(http.StatusBadRequest, Result{
 			Code: CodeUserSide,
 			Msg:  "wrong retro id",
@@ -277,7 +277,7 @@ func (h *RetroHandler) GetRetroByID(ctx *gin.Context) {
 		return
 	}
 
-	t, err := h.svc.GetRetroByID(ctx, int64(tid), uid.(int64))
+	t, err := h.svc.GetRetroByID(ctx, int64(rid), uid.(int64))
 	switch err {
 	case nil:
 		ctx.JSON(http.StatusOK, Result{
@@ -293,7 +293,7 @@ func (h *RetroHandler) GetRetroByID(ctx *gin.Context) {
 		})
 		return
 	case service.ErrIDNotFound:
-		slog.Error("retro id not found", "id", tid, "err", err)
+		slog.Error("retro id not found", "id", rid, "err", err)
 		ctx.JSON(http.StatusBadRequest, Result{
 			Code: CodeUserSide,
 			Msg:  "id not found",
@@ -309,9 +309,9 @@ func (h *RetroHandler) GetRetroByID(ctx *gin.Context) {
 func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
-	tid, err := strconv.Atoi(idStr)
+	rid, err := strconv.Atoi(idStr)
 	if err != nil {
-		slog.Error("wrong retro id", "id", tid, "err", err)
+		slog.Error("wrong retro id", "id", rid, "err", err)
 		ctx.JSON(http.StatusBadRequest, Result{
 			Code: CodeUserSide,
 			Msg:  "wrong retro id",
@@ -326,7 +326,7 @@ func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
 		return
 	}
 
-	err = h.svc.DeleteRetroByID(ctx, int64(tid), uid.(int64))
+	err = h.svc.DeleteRetroByID(ctx, int64(rid), uid.(int64))
 	switch err {
 	case service.ErrNoAccess:
 		slog.Error("no access", "err", err)
@@ -336,7 +336,7 @@ func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
 		})
 		return
 	case service.ErrIDNotFound:
-		slog.Error("retro id not found", "id", tid, "err", err)
+		slog.Error("retro id not found", "id", rid, "err", err)
 		ctx.JSON(http.StatusBadRequest, Result{
 			Code: CodeUserSide,
 			Msg:  "id not found",
@@ -362,7 +362,7 @@ func (h *RetroHandler) CreatePostit(ctx *gin.Context) {
 	// 	IsVisible  bool   `json:"is_visible"`
 	// }
 
-	var req service.Postit
+	var req service.PostitCreate
 
 	if err := ctx.Bind(&req); err != nil {
 		slog.Error("bad request", "err", err)
@@ -391,9 +391,102 @@ func (h *RetroHandler) CreatePostit(ctx *gin.Context) {
 }
 
 func (h *RetroHandler) UpdatePostitByID(ctx *gin.Context) {
+	// type Req struct {
+	// 	ID        int64  `json:"id"         binding:"required"`
+	// 	Content   string `json:"content"`
+	// 	IsVisible bool   `json:"is_visible"`
+	// }
+
+	var req service.PostitUpdate
+
+	if err := ctx.Bind(&req); err != nil {
+		slog.Error("bad request", "err", err)
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	_, err := h.svc.UpdatePostit(ctx, req, uid.(int64))
+	switch err {
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("prostit id not found", "id", req.ID, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "update postit success",
+		})
+		return
+	default:
+		slog.Error("update postit", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
 }
 
 func (h *RetroHandler) DeletePostitByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	pid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong postit id", "id", pid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong postit id",
+		})
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	err = h.svc.DeletePostitByID(ctx, int64(pid), uid.(int64))
+	switch err {
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("prostit id not found", "id", pid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "delete postit success",
+		})
+		return
+	default:
+		slog.Error("delete postit", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
 }
 
 // TODO: Nice to have ...
