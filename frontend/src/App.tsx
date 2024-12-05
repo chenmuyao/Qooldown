@@ -20,17 +20,19 @@ const App: React.FC = () => {
     <SocketProvider>
       <RetroProvider>
         <Router>
-          <Header />
-          <div className="container mx-auto p-4">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/retro/:id" element={<Retro />} />
-              <Route path="/create-template" element={<CreateTemplate />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/retroList" element={<RetroListPage />} />
-              <Route path="/templateList" element={<TemplateListPage />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/retro/:id" element={<Retro />} />
+                <Route path="/create-template" element={<CreateTemplate />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/retroList" element={<RetroListPage />} />
+                <Route path="/templateList" element={<TemplateListPage />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </main>
           </div>
         </Router>
       </RetroProvider>

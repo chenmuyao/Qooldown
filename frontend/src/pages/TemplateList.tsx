@@ -30,8 +30,8 @@ const TemplateListPage: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-        console.log(data);
-            const templatesList = data.data.map((template: any) => ({
+          console.log(data);
+          const templatesList = data.data.map((template: any) => ({
             id: template.id,
             name: template.name,
           }));
@@ -82,7 +82,7 @@ const TemplateListPage: React.FC = () => {
     }
   }, [templateCreated, newTemplateId, navigate]);
 
-  const handleJoinTemplate = (templateId: number) => {
+  const handleCreateRetro = (templateId: number) => {
     if (socket) {
       socket.send(
         JSON.stringify({
@@ -115,7 +115,7 @@ const TemplateListPage: React.FC = () => {
                 </div>
                 <button
                   className="join-template-button bg-green-500 text-white py-1 px-4 rounded-full hover:bg-green-600 transition"
-                  onClick={() => handleJoinTemplate(template.id)}
+                  onClick={() => handleCreateRetro(template.id)}
                 >
                   Create Retro
                 </button>
