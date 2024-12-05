@@ -17,6 +17,11 @@ type RetroService interface {
 	GetTemplates(ctx context.Context) ([]repository.Template, error)
 	DeleteTemplateByID(ctx context.Context, tid int64, uid int64) error
 	GetTemplateByID(ctx context.Context, tid int64, uid int64) (repository.Template, error)
+
+	CreateRetro(ctx context.Context, tid int64, uid int64, name string) (repository.Retro, error)
+	GetRetros(ctx context.Context) ([]repository.Retro, error)
+	GetRetroByID(ctx context.Context, tid int64, uid int64) (repository.Retro, error)
+	DeleteRetroByID(ctx context.Context, tid int64, uid int64) error
 }
 
 type retroService struct {
@@ -28,6 +33,8 @@ func NewRetroService(repo repository.RetroRepository) RetroService {
 		repo: repo,
 	}
 }
+
+// {{{ Template
 
 func (r *retroService) CreateTemplate(
 	ctx context.Context,
@@ -71,3 +78,48 @@ func (r *retroService) GetTemplateByID(
 
 	return t, nil
 }
+
+// }}}
+// {{{ Retro
+
+func (r *retroService) CreateRetro(
+	ctx context.Context,
+	tid int64,
+	uid int64,
+	name string,
+) (repository.Retro, error) {
+	return r.repo.CreateRetro(ctx, uid, tid, name)
+}
+
+func (r *retroService) GetRetros(ctx context.Context) ([]repository.Retro, error) {
+	return r.repo.GetRetros(ctx)
+}
+
+func (r *retroService) DeleteRetroByID(ctx context.Context, tid int64, uid int64) error {
+	// Get the retro by ID
+	t, err := r.repo.GetRetroByID(ctx, tid)
+	if err != nil {
+		return err
+	}
+	// compare the owner
+	if t.UserID != uid {
+		return ErrNoAccess
+	}
+
+	return r.repo.DeleteRetroByID(ctx, tid)
+}
+
+func (r *retroService) GetRetroByID(
+	ctx context.Context,
+	tid int64,
+	uid int64,
+) (repository.Retro, error) {
+	// Get the retro by ID
+	t, err := r.repo.GetRetroByID(ctx, tid)
+	if err != nil {
+		return repository.Retro{}, err
+	}
+	return t, nil
+}
+
+// }}}

@@ -60,8 +60,12 @@ type Retro struct {
 
 	Name string `gorm:"index" json:"name"`
 
-	// many to many
-	Users []User `gorm:"many2many:retro_users;"`
+	// // many to many
+	// Users []User `gorm:"many2many:retro_users;"`
+
+	// belongs to
+	UserID int64 `json:"owner_id"`
+	User   User  `json:"owner"`
 
 	// Questions are copied from the template
 	// has many
@@ -90,9 +94,15 @@ type Postit struct {
 
 type RetroRepository interface {
 	InsertTemplate(ctx context.Context, t Template) (Template, error)
+	UpdateTemplate(ctx context.Context, t Template) (Template, error)
 	GetTemplates(ctx context.Context) ([]Template, error)
 	GetTemplateByID(ctx context.Context, tid int64) (Template, error)
 	DeleteTemplateByID(ctx context.Context, tid int64) error
+
+	CreateRetro(ctx context.Context, tid int64, uid int64, name string) (Retro, error)
+	GetRetros(ctx context.Context) ([]Retro, error)
+	GetRetroByID(ctx context.Context, rid int64) (Retro, error)
+	DeleteRetroByID(ctx context.Context, rid int64) error
 }
 
 type GORMRetroRepository struct {
@@ -107,11 +117,13 @@ func NewRetroRepository(db *gorm.DB) RetroRepository {
 
 // {{{ Templates
 
-func (repo *GORMRetroRepository) InsertTemplate(
-	ctx context.Context,
-	t Template,
-) (Template, error) {
+func (repo *GORMRetroRepository) InsertTemplate(ctx context.Context, t Template) (Template, error) {
 	err := repo.db.WithContext(ctx).Create(&t).Error
+	return t, err
+}
+
+func (repo *GORMRetroRepository) UpdateTemplate(ctx context.Context, t Template) (Template, error) {
+	err := repo.db.WithContext(ctx).Save(&t).Error
 	return t, err
 }
 
@@ -129,6 +141,66 @@ func (repo *GORMRetroRepository) GetTemplateByID(ctx context.Context, tid int64)
 
 func (repo *GORMRetroRepository) DeleteTemplateByID(ctx context.Context, tid int64) error {
 	err := repo.db.WithContext(ctx).Delete(&Template{}, tid).Error
+	return err
+}
+
+// }}}
+// {{{ Retro
+
+func (repo *GORMRetroRepository) CreateRetro(
+	ctx context.Context,
+	tid int64,
+	uid int64,
+	name string,
+) (Retro, error) {
+	var retro Retro
+	err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Get template
+		t, err := repo.GetTemplateByID(ctx, tid)
+		if err != nil {
+			return err
+		}
+
+		retro.Name = name
+		retro.UserID = uid
+
+		for _, qt := range t.Questions {
+			var q Question
+			q.Content = qt.Content
+
+			retro.Questions = append(retro.Questions, q)
+		}
+
+		err = tx.Create(&retro).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return retro, err
+}
+
+func (repo *GORMRetroRepository) GetRetros(ctx context.Context) ([]Retro, error) {
+	var r []Retro
+	err := repo.db.WithContext(ctx).
+		Preload("Questions.Postits").
+		Find(&r).
+		Error
+	return r, err
+}
+
+func (repo *GORMRetroRepository) GetRetroByID(ctx context.Context, rid int64) (Retro, error) {
+	var r Retro
+	err := repo.db.WithContext(ctx).
+		Preload("Questions.Postits").
+		Where("id = ?", rid).First(&r).Error
+	return r, err
+}
+
+func (repo *GORMRetroRepository) DeleteRetroByID(ctx context.Context, rid int64) error {
+	err := repo.db.WithContext(ctx).Delete(&Retro{}, rid).Error
 	return err
 }
 

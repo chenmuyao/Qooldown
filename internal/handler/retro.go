@@ -30,7 +30,9 @@ func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 
 	retros := server.Group("/retros")
 	retros.POST("/", h.CreateRetro)
-	retros.GET("/", h.GetAllRetros)
+	retros.GET("/", h.GetRetros)
+	retros.GET("/:id", h.GetRetroByID)
+	retros.DELETE("/:id", h.DeleteRetroByID)
 }
 
 // {{{ Templates
@@ -96,7 +98,7 @@ func (h *RetroHandler) GetTemplates(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, Result{
 		Code: CodeOK,
-		Msg:  "create template success",
+		Msg:  "get template success",
 		Data: t,
 	})
 }
@@ -202,16 +204,150 @@ func (h *RetroHandler) GetTemplateByID(ctx *gin.Context) {
 // }}}
 
 func (h *RetroHandler) CreateRetro(ctx *gin.Context) {
+	type Req struct {
+		Name string `json:"name"        binding:"required"`
+		TID  int64  `json:"template_id" binding:"required"`
+	}
+
+	var req Req
+
+	if err := ctx.Bind(&req); err != nil {
+		slog.Error("bad request", "err", err)
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	r, err := h.svc.CreateRetro(ctx, req.TID, uid.(int64), req.Name)
+	if err != nil {
+		slog.Error("create retro", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Code: CodeOK,
+		Msg:  "create retro success",
+		Data: r, // ID, Name
+	})
 }
 
-func (h *RetroHandler) GetAllRetros(ctx *gin.Context) {
+func (h *RetroHandler) GetRetros(ctx *gin.Context) {
+	// TODO: Pagination not handled
+	t, err := h.svc.GetRetros(ctx)
+	if err != nil {
+		slog.Error("get retros", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Code: CodeOK,
+		Msg:  "get retros success",
+		Data: t,
+	})
 }
 
 // GetRetroByID returns everything relative to a retro
 func (h *RetroHandler) GetRetroByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	tid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong retro id", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong retro id",
+		})
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	t, err := h.svc.GetRetroByID(ctx, int64(tid), uid.(int64))
+	switch err {
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "get retro success",
+			Data: t,
+		})
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("retro id not found", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	default:
+		slog.Error("get retro", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
 }
 
 func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	tid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong retro id", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong retro id",
+		})
+		return
+	}
+
+	uid, ok := ctx.Get("uid")
+	if !ok {
+		slog.Error("cannot get user id")
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+
+	err = h.svc.DeleteRetroByID(ctx, int64(tid), uid.(int64))
+	switch err {
+	case service.ErrNoAccess:
+		slog.Error("no access", "err", err)
+		ctx.JSON(http.StatusForbidden, Result{
+			Code: CodeUserSide,
+			Msg:  err.Error(),
+		})
+		return
+	case service.ErrIDNotFound:
+		slog.Error("retro id not found", "id", tid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "delete retro success",
+		})
+		return
+	default:
+		slog.Error("delete retro", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
 }
 
 func (h *RetroHandler) CreatePost(ctx *gin.Context) {
