@@ -4,10 +4,11 @@ import { useSocket } from "../contexts/SocketContext";
 
 interface Retro {
   id: number;
+  name: string;
 }
 
 const RetroListPage: React.FC = () => {
-  const socket = useSocket(); // Utilisation du contexte WebSocket
+  //const socket = useSocket(); // Utilisation du contexte WebSocket
   const navigate = useNavigate();
   const [retros, setRetros] = useState<Retro[]>([]);
   const [creatingRetro, setCreatingRetro] = useState(false);
@@ -19,7 +20,7 @@ const RetroListPage: React.FC = () => {
     const fetchRetros = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("/api/retros", {
+        const response = await fetch("/retros", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -29,7 +30,12 @@ const RetroListPage: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setRetros(data.retros);
+          console.log(data);
+          const retrosList = data.data.map((retro: any) => ({
+            id: retro.id,
+            name: retro.name,
+          }));
+          setRetros(retrosList);
         }
       } catch (error) {
         console.error("Error fetching retros:", error);
@@ -39,35 +45,7 @@ const RetroListPage: React.FC = () => {
     fetchRetros();
 
     // Gestion des messages WebSocket pour la mise à jour de la liste des rétros et la création d'une nouvelle rétro
-    if (socket) {
-      socket.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-
-        switch (message.type) {
-          case "retros_list":
-            setRetros(message.retros);
-            break;
-          case "retro_created":
-            setRetros((prevRetros) => [
-              ...prevRetros,
-              { id: message.retro_id },
-            ]);
-            if (creatingRetro) {
-              setRetroCreated(true);
-              setNewRetroId(message.retro_id); // Sauvegarder l'ID de la nouvelle rétro
-            }
-            break;
-          default:
-            console.log("Message non pris en charge", message);
-        }
-      };
-
-      // Cleanup de l'écouteur d'événements lors du démontage du composant
-      return () => {
-        socket.onmessage = null;
-      };
-    }
-  }, [socket, creatingRetro]);
+  }, [creatingRetro]);
 
   useEffect(() => {
     if (retroCreated && newRetroId !== null) {
@@ -77,15 +55,6 @@ const RetroListPage: React.FC = () => {
   }, [retroCreated, newRetroId, navigate]);
 
   const handleJoinRetro = (retroId: number) => {
-    if (socket) {
-      socket.send(
-        JSON.stringify({
-          action: "join_retro",
-          token: localStorage.getItem("token"),
-          retro_id: retroId,
-        }),
-      );
-    }
     navigate(`/retro/${retroId}`);
   };
 
