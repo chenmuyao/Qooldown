@@ -20,13 +20,39 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
     setEditedContent(e.target.value);
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     setIsEditing(false);
+    console.log("test");
     dispatch({
       type: "UPDATE_POSTIT_CONTENT",
       payload: { questionId, postItId: id, content: editedContent }, // Ajout de questionId dans l'action
     });
-    // Ici, vous pourriez ajouter l'émission d'un événement socket
+    const token = localStorage.getItem("token");
+    try {
+      console.log(id);
+      const response = await fetch(`/postits/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: id,
+          question_id: questionId,
+          content: editedContent,
+          is_visible: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update postit.");
+      }
+
+      const data = await response.json();
+      console.log(data);
+    } catch (err: any) {
+      console.error("Error:", err);
+    }
   };
 
   const handleDelete = async () => {
