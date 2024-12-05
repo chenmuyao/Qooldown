@@ -184,17 +184,19 @@ func (repo *GORMRetroRepository) CreateRetro(
 
 func (repo *GORMRetroRepository) GetRetros(ctx context.Context) ([]Retro, error) {
 	var r []Retro
-	err := repo.db.WithContext(ctx).
-		Preload("Questions.Postits").
-		Find(&r).
-		Error
+	err := repo.db.WithContext(ctx).Find(&r).Error
 	return r, err
 }
 
 func (repo *GORMRetroRepository) GetRetroByID(ctx context.Context, rid int64) (Retro, error) {
 	var r Retro
 	err := repo.db.WithContext(ctx).
-		Preload("Questions.Postits").
+		Preload("Questions", func(db *gorm.DB) *gorm.DB {
+			return db.Order("id ASC")
+		}).
+		Preload("Questions.Postits", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC")
+		}).
 		Where("id = ?", rid).First(&r).Error
 	return r, err
 }
