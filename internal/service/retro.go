@@ -90,7 +90,7 @@ func (r *retroService) CreateRetro(
 	uid int64,
 	name string,
 ) (repository.Retro, error) {
-	return r.repo.CreateRetro(ctx, uid, tid, name)
+	return r.repo.CreateRetro(ctx, tid, uid, name)
 }
 
 func (r *retroService) GetRetros(ctx context.Context) ([]repository.Retro, error) {
