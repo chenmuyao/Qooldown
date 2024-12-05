@@ -16,6 +16,7 @@ type Action =
   | { type: "ADD_POSTIT"; payload: { category: string } }
   | { type: "UPDATE_POSTIT_CONTENT"; payload: { id: string; content: string } }
   | { type: "TOGGLE_POSTIT_VISIBILITY"; payload: { id: string } }
+  | { type: "DELETE_POSTIT"; payload: { id: string } }
   | { type: "SET_DATA"; payload: RetroState };
 
 const initialState: RetroState = {
@@ -68,6 +69,14 @@ export const RetroProvider: React.FC<{ children: React.ReactNode }> = ({
             postIt.id === action.payload.id
               ? { ...postIt, hidden: !postIt.hidden }
               : postIt,
+          ),
+        };
+
+      case "DELETE_POSTIT":
+        return {
+          ...state,
+          postIts: state.postIts.filter(
+            (postIt) => postIt.id !== action.payload.id,
           ),
         };
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useRetro } from "../contexts/RetroContext";
+import { Trash2 } from "lucide-react";
 
 interface PostItProps {
   id: string;
@@ -27,6 +28,19 @@ const PostIt: React.FC<PostItProps> = ({ id, content, hidden }) => {
     // Ici, vous pourriez ajouter l'émission d'un événement socket
   };
 
+  const handleDelete = () => {
+    const confirmDelete = window.confirm(
+      "Voulez-vous vraiment supprimer ce post-it ?",
+    );
+    if (confirmDelete) {
+      dispatch({
+        type: "DELETE_POSTIT",
+        payload: { id },
+      });
+      // TODO emit ws
+    }
+  };
+
   const handleToggleVisibility = () => {
     dispatch({
       type: "TOGGLE_POSTIT_VISIBILITY",
@@ -37,6 +51,17 @@ const PostIt: React.FC<PostItProps> = ({ id, content, hidden }) => {
 
   return (
     <div className="bg-yellow-200 border border-yellow-400 rounded shadow p-2 m-2 relative">
+      <div
+        className="absolute -top-2 -right-2 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+        title="Supprimer le post-it"
+      >
+        <button
+          onClick={handleDelete}
+          className="text-red-500 hover:text-red-700"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>{" "}
       {isEditing ? (
         <textarea
           value={editedContent}
