@@ -1,65 +1,38 @@
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useSocket } from "../contexts/SocketContext";
 import Board from "../components/Board";
 import { useRetro } from "../contexts/RetroContext";
 
 const Retro: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const socket = useSocket();
   const { dispatch } = useRetro();
 
   useEffect(() => {
     if (!id) return;
-
-    // Fetch des données initiales
-    fetch(`/api/retros/${id}`)
+    const token = localStorage.getItem("token");
+    // Fetch des données initiales depuis l'API
+    fetch(`/retros/${id}`, {
+      method: "GET", // Méthode de la requête (GET ici)
+      headers: {
+        "Content-Type": "application/json", // Indiquer que la requête attend du JSON
+        Authorization: `Bearer ${token}`, // Ajouter le token dans l'en-tête
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
-        dispatch({ type: "SET_DATA", payload: data });
+        // On s'assure que data a la bonne structure avant de le passer au dispatch
+        const payload = {
+          questions: data.data.questions || [], // Assurez-vous que la réponse contient bien des questions
+        };
+        console.log(payload);
+
+        // Dispatch des données dans le contexte
+        dispatch({ type: "SET_DATA", payload });
+      })
+      .catch((error) => {
+        console.error("Erreur lors du chargement des données :", error);
       });
-
-    if (socket) {
-      // Rejoindre la rétro
-      socket.send(
-        JSON.stringify({
-          action: "join_retro",
-          retro_id: id,
-        }),
-      );
-
-      // Gestion des événements WebSocket
-      socket.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        switch (message.type) {
-          case "retro_update":
-            if (message.retroId === id) {
-              dispatch({ type: "SET_DATA", payload: message.data });
-            }
-            break;
-          case "retro_delete":
-            if (message.retroId === id) {
-              console.log("Rétrospective supprimée", id);
-              // Logique de redirection ou affichage de message
-            }
-            break;
-          default:
-            console.log("Message non pris en charge", message);
-        }
-      };
-
-      // Cleanup
-      return () => {
-        socket.send(
-          JSON.stringify({
-            action: "leave_retro",
-            retro_id: id,
-          }),
-        );
-        socket.onmessage = null;
-      };
-    }
-  }, [id, socket, dispatch]);
+  }, [id, dispatch]);
 
   return (
     <div>

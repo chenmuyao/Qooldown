@@ -3,12 +3,13 @@ import { useRetro } from "../contexts/RetroContext";
 import { Trash2 } from "lucide-react";
 
 interface PostItProps {
+  questionId: number; // Ajout de l'id de la question
   id: string;
   content: string;
   hidden: boolean;
 }
 
-const PostIt: React.FC<PostItProps> = ({ id, content, hidden }) => {
+const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
   const { dispatch } = useRetro();
   const [isEditing, setIsEditing] = useState(content === "");
   const [editedContent, setEditedContent] = useState(content);
@@ -23,7 +24,7 @@ const PostIt: React.FC<PostItProps> = ({ id, content, hidden }) => {
     setIsEditing(false);
     dispatch({
       type: "UPDATE_POSTIT_CONTENT",
-      payload: { id, content: editedContent },
+      payload: { questionId, postItId: id, content: editedContent }, // Ajout de questionId dans l'action
     });
     // Ici, vous pourriez ajouter l'émission d'un événement socket
   };
@@ -35,7 +36,7 @@ const PostIt: React.FC<PostItProps> = ({ id, content, hidden }) => {
     if (confirmDelete) {
       dispatch({
         type: "DELETE_POSTIT",
-        payload: { id },
+        payload: { questionId, postItId: id }, // Ajout de questionId dans l'action
       });
       // TODO emit ws
     }
@@ -44,7 +45,7 @@ const PostIt: React.FC<PostItProps> = ({ id, content, hidden }) => {
   const handleToggleVisibility = () => {
     dispatch({
       type: "TOGGLE_POSTIT_VISIBILITY",
-      payload: { id },
+      payload: { questionId, postItId: id }, // Ajout de questionId dans l'action
     });
     // Ici, vous pourriez ajouter l'émission d'un événement socket
   };
