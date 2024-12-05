@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	ErrNoAccess   = errors.New("not the owner of this object")
-	ErrIDNotFound = repository.ErrIDNotFound
+	ErrNoAccess          = errors.New("not the owner of this object")
+	ErrIDNotFound        = repository.ErrIDNotFound
+	NoContentPlaceholder = "~~~~~~~~\n~~~~~~~~"
 )
 
 type RetroService interface {
@@ -119,11 +120,21 @@ func (r *retroService) GetRetroByID(
 	uid int64,
 ) (repository.Retro, error) {
 	// Get the retro by ID
-	t, err := r.repo.GetRetroByID(ctx, tid)
+	retro, err := r.repo.GetRetroByID(ctx, tid)
 	if err != nil {
 		return repository.Retro{}, err
 	}
-	return t, nil
+
+	for i := range retro.Questions {
+		for j := range retro.Questions[i].Postits {
+			// the post is not visible and it does not belong to the user
+			if !retro.Questions[i].Postits[j].IsVisible &&
+				retro.Questions[i].Postits[j].UserID != uid {
+				retro.Questions[i].Postits[j].Content = NoContentPlaceholder
+			}
+		}
+	}
+	return retro, nil
 }
 
 // }}}
