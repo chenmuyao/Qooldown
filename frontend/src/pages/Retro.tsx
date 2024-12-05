@@ -6,20 +6,19 @@ import { useRetro } from "../contexts/RetroContext";
 
 const Retro: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const socket = useSocket(); // Utilisation du contexte global pour les WebSocket
-  const { dispatch } = useRetro(); // Gestion du contexte de la rétro
+  const socket = useSocket();
+  const { dispatch } = useRetro();
 
   useEffect(() => {
     if (!id) return;
 
-    // Fetch des données initiales de la rétro
+    // Fetch des données initiales
     fetch(`/api/retros/${id}`)
       .then((res) => res.json())
       .then((data) => {
-        dispatch({ type: "SET_DATA", payload: data }); // Mettre à jour le contexte
+        dispatch({ type: "SET_DATA", payload: data });
       });
 
-    // Gestion des événements WebSocket pour synchroniser les données
     if (socket) {
       // Rejoindre la rétro
       socket.send(
@@ -29,20 +28,19 @@ const Retro: React.FC = () => {
         }),
       );
 
-      // Écoute des mises à jour de la rétro
+      // Gestion des événements WebSocket
       socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
-
         switch (message.type) {
           case "retro_update":
             if (message.retroId === id) {
-              dispatch({ type: "SET_DATA", payload: message }); // Mettre à jour le contexte à partir des messages reçus
+              dispatch({ type: "SET_DATA", payload: message.data });
             }
             break;
           case "retro_delete":
             if (message.retroId === id) {
               console.log("Rétrospective supprimée", id);
-              // Ajouter une logique pour rediriger ou afficher un message
+              // Logique de redirection ou affichage de message
             }
             break;
           default:
@@ -50,17 +48,14 @@ const Retro: React.FC = () => {
         }
       };
 
-      // Cleanup lors de la sortie de la page
+      // Cleanup
       return () => {
-        // Quitter la rétro
         socket.send(
           JSON.stringify({
             action: "leave_retro",
             retro_id: id,
           }),
         );
-
-        // Nettoyer l'écouteur de messages
         socket.onmessage = null;
       };
     }

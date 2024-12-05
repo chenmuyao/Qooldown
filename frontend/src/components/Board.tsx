@@ -2,51 +2,43 @@ import React from "react";
 import { useRetro } from "../contexts/RetroContext";
 import PostIt from "./PostIt";
 
-import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
-
 const Board: React.FC = () => {
   const { state, dispatch } = useRetro();
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-
-    console.log("Source index:", result.source.index);
-    console.log("Destination index:", result.destination.index);
-
-    if (result.source.index === result.destination.index) return;
-
+  const handleAddPostIt = (category: string) => {
     dispatch({
-      type: "MOVE_POSTIT",
-      payload: {
-        sourceIndex: result.source.index,
-        destinationIndex: result.destination.index,
-      },
+      type: "ADD_POSTIT",
+      payload: { category },
     });
+    // Ici, vous pourriez ajouter l'émission d'un événement socket
   };
+
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="board">
-        {(provided) => (
+    <div className="flex w-full h-screen bg-gray-100 border rounded-md">
+      {state.categories.map((category, index) => (
+        <div
+          key={index}
+          className="flex-1 p-4 border-r last:border-r-0 flex flex-col"
+        >
           <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="relative w-full h-screen bg-gray-100 border rounded-md"
+            className="font-semibold text-gray-700 mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded"
+            onClick={() => handleAddPostIt(category)}
           >
-            <div className="flex justify-around p-4 bg-gray-200 border-b">
-              {state.categories.map((category, index) => (
-                <div key={index} className="font-semibold text-gray-700">
-                  {category}
-                </div>
-              ))}
-            </div>
-            {state.postIts.map((postIt, index) => (
-              <PostIt key={postIt.id} index={index} {...postIt} />
-            ))}
-            {provided.placeholder}
+            {category}
           </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+          {state.postIts
+            .filter((postIt) => postIt.category === category)
+            .map((postIt) => (
+              <PostIt
+                key={postIt.id}
+                id={postIt.id}
+                content={postIt.content}
+                hidden={postIt.hidden}
+              />
+            ))}
+        </div>
+      ))}
+    </div>
   );
 };
 
