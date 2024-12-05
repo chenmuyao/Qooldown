@@ -12,7 +12,7 @@ const Home: React.FC = () => {
         Créer un template
       </Link>
       <Link
-        to="/retro/123"
+        to="/templateList"
         className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
       >
         Créer une rétrospective

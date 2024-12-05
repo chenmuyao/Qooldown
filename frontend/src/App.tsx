@@ -13,6 +13,7 @@ import Header from "./components/Header";
 import RegisterPage from "./pages/RegisterPage";
 import RetroListPage from "./pages/retroList";
 import CreateTemplate from "./pages/CreateTemplate";
+import TemplateListPage from "./pages/TemplateList";
 
 const App: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const App: React.FC = () => {
               <Route path="/create-template" element={<CreateTemplate />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/retroList" element={<RetroListPage />} />
+              <Route path="/templateList" element={<TemplateListPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>
