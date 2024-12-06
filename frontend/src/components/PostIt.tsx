@@ -66,11 +66,10 @@ const PostIt: React.FC<PostItProps> = ({
           id,
           question_id: questionId,
           content: editedContent,
-          is_visible: !newHiddenState, // Inverse de l'état caché
+          is_visible: !newHiddenState,
         }),
       });
 
-      // Mettre à jour l'état local
       setHidden(newHiddenState);
 
       dispatch({
@@ -100,7 +99,7 @@ const PostIt: React.FC<PostItProps> = ({
 
   return (
     <div
-      className="relative bg-yellow-200 text-black font-sans shadow-lg rounded-lg p-4 hover:shadow-xl transition-all"
+      className="relative bg-yellow-200 text-black font-sans shadow-lg rounded-lg p-4 hover:shadow-xl transition-all flex flex-col"
       style={{
         width: "200px",
         minHeight: "150px",
@@ -110,42 +109,48 @@ const PostIt: React.FC<PostItProps> = ({
         transform: "rotate(-2deg)",
       }}
     >
-      {isEditing ? (
-        <textarea
-          value={editedContent}
-          onChange={(e) => setEditedContent(e.target.value)}
-          onBlur={handleSave}
-          className="w-full h-full bg-yellow-100 text-black border-none resize-none focus:outline-none p-2 rounded"
-          autoFocus
-        />
-      ) : (
-        <div
-          onDoubleClick={() => setIsEditing(true)}
-          className="whitespace-pre-wrap break-words"
-        >
-          <p>{content}</p>
-        </div>
-      )}
+      {/* Conteneur pour le contenu du post-it */}
+      <div className="flex-grow relative">
+        {isEditing ? (
+          <textarea
+            value={editedContent}
+            onChange={(e) => setEditedContent(e.target.value)}
+            onBlur={handleSave}
+            className="w-full h-full bg-yellow-100 text-black border-none resize-none focus:outline-none p-2 rounded"
+            autoFocus
+          />
+        ) : (
+          <div
+            onDoubleClick={() => setIsEditing(true)}
+            className="whitespace-pre-wrap break-words"
+          >
+            <p>{content}</p>
+          </div>
+        )}
+      </div>
 
+      {/* Barre de boutons en bas */}
       {String(currentUserId) === String(userId) && (
-        <div className="absolute top-2 right-2 flex space-x-2">
-          <button
-            onClick={handleToggleVisibility}
-            className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition flex items-center"
-          >
-            {hidden ? (
-              <Eye size={16} className="mr-1" />
-            ) : (
-              <EyeOff size={16} className="mr-1" />
-            )}
-            {hidden ? "Dévoiler" : "Cacher"}
-          </button>
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
-          >
-            <Trash2 size={16} />
-          </button>
+        <div className="flex justify-between items-center mt-2 border-t border-yellow-300 pt-2">
+          <div className="flex space-x-2">
+            <button
+              onClick={handleToggleVisibility}
+              className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition flex items-center"
+            >
+              {hidden ? (
+                <Eye size={16} className="mr-1" />
+              ) : (
+                <EyeOff size={16} className="mr-1" />
+              )}
+              {hidden ? "Dévoiler" : "Cacher"}
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
       )}
     </div>
