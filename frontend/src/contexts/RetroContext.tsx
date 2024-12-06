@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer } from "react";
 import PostIt from "../components/PostIt";
 
-// Structure d'un Post-it (ajout de votes)
+// Structure d'un Post-it
 interface PostIt {
   id: string;
   content: string;
@@ -22,7 +22,7 @@ interface RetroState {
   questions: Question[];
 }
 
-// Actions possibles pour modifier l'état (ajout de VOTE_POSTIT)
+// Actions possibles pour modifier l'état
 type Action =
   | {
       type: "ADD_POSTIT";
@@ -45,14 +45,6 @@ type Action =
   | {
       type: "TOGGLE_POSTIT_VISIBILITY";
       payload: { questionId: number; postItId: string };
-    }
-  | { 
-      type: "VOTE_POSTIT"; 
-      payload: { 
-        questionId: number; 
-        postItId: string; 
-        currentVotes: number 
-      }; 
     }
   | { type: "DELETE_POSTIT"; payload: { questionId: number; postItId: string } }
   | { type: "SET_DATA"; payload: RetroState };
@@ -89,9 +81,7 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                     content,
                     hidden: false, // Visible par défaut
                     userId,
-
                     votes, // Add votes to the new post-it
-
                   },
                 ],
               }
@@ -100,8 +90,22 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
       };
     }
 
-    // Autres cas précédents restent identiques...
-
+    case "UPDATE_POSTIT_CONTENT": {
+      const { questionId, postItId, content } = action.payload;
+      return {
+        ...state,
+        questions: state.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                postIts: question.postIts.map((postIt) =>
+                  postIt.id === postItId ? { ...postIt, content } : postIt,
+                ),
+              }
+            : question,
+        ),
+      };
+    }
 
     case "UPDATE_POSTIT_VOTES": {
       const { questionId, postItId, votes } = action.payload;
@@ -130,8 +134,25 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                 ...question,
                 postIts: question.postIts.map((postIt) =>
                   postIt.id === postItId
-                    ? { ...postIt, votes: currentVotes + 1 }
+                    ? { ...postIt, hidden: !postIt.hidden }
                     : postIt,
+                ),
+              }
+            : question,
+        ),
+      };
+    }
+
+    case "DELETE_POSTIT": {
+      const { questionId, postItId } = action.payload;
+      return {
+        ...state,
+        questions: state.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                postIts: question.postIts.filter(
+                  (postIt) => postIt.id !== postItId,
                 ),
               }
             : question,
@@ -148,8 +169,7 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
   }
 };
 
-// Provider et autres parties restent identiques...
-
+// Provider pour le contexte
 export const RetroProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -162,4 +182,5 @@ export const RetroProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// Hook pour utiliser le contexte
 export const useRetro = () => useContext(RetroContext);

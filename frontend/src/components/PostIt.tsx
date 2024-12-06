@@ -190,7 +190,6 @@ const PostIt: React.FC<PostItProps> = ({
               </button>
             </>
           )}
-
         </div>
       </div>
     </div>
