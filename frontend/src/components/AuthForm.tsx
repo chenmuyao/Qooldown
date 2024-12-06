@@ -20,10 +20,10 @@ const AuthForm: React.FC<AuthFormProps> = ({
     try {
       await onSubmit(username, password);
       setMessage(
-        isRegister ? "User registered successfully!" : "Login successful!",
+        isRegister ? "L'utilisateur s'est inscrit avec succès !" : "Connexion réussie !",
       );
     } catch (error) {
-      setMessage("Error occurred");
+      setMessage("Erreur: " + error);
     }
   };
 
@@ -42,12 +42,12 @@ const AuthForm: React.FC<AuthFormProps> = ({
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-center mb-6">
-          {isRegister ? "Register" : "Login"}
+          {isRegister ? "Inscription" : "Login"}
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
-              Username:
+              Nom d'utilisateur:
             </label>
             <input
               type="text"
@@ -59,7 +59,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
-              Password:
+              Mot de passe:
             </label>
             <input
               type="password"
@@ -73,7 +73,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
             type="submit"
             className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200"
           >
-            {isRegister ? "Register" : "Login"}
+            {isRegister ? "Je m'inscris" : "Login"}
           </button>
         </form>
         {onDeleteUsers && (
