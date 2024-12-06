@@ -37,7 +37,7 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 type loginData struct {
 	Token    string `json:"token"`
 	Username string `json:"username"`
-	ID       string `json:"id"`
+	ID       int64  `json:"id"`
 }
 
 func (h *UserHandler) SignUp(ctx *gin.Context) {
@@ -70,8 +70,8 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 			Msg:  "signup success",
 			Data: loginData{
 				Token:    token,
-				Username: req.Username,
-				ID:       ctx.Param("id"),
+				Username: u.Username,
+				ID:       u.ID,
 			},
 		})
 	case service.ErrDuplicatedUser:
