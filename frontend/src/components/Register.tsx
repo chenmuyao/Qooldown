@@ -18,7 +18,9 @@ const Register: React.FC = () => {
       throw new Error("Failed to login");
     } else {
       localStorage.setItem("token", data.data.token);
-      navigate("/gameList");
+      localStorage.setItem("userId", data.data.id);
+      localStorage.setItem("userName", data.data.username);
+      navigate("/home");
       //navigate(`/game/${data.gameId}`);
     }
   };

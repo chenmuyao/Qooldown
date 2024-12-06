@@ -19,9 +19,20 @@ const Retro: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
+        // Transforme les données pour mapper owner_id à userId
+        const transformedQuestions = data.data.questions.map(
+          (question: any) => ({
+            ...question,
+            postIts: question.postIts.map((postIt: any) => ({
+              ...postIt,
+              userId: postIt.owner_id, // Renomme owner_id en userId
+            })),
+          }),
+        );
+
         dispatch({
           type: "SET_DATA",
-          payload: { questions: data.data.questions || [] },
+          payload: { questions: transformedQuestions },
         });
       })
       .catch((error) =>

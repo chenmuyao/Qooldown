@@ -5,7 +5,11 @@ import PostIt from "./PostIt";
 const Board: React.FC = () => {
   const { state, dispatch } = useRetro();
 
-  const handleAddPostIt = async (questionId: number, content: string) => {
+  const handleAddPostIt = async (
+    questionId: number,
+    content: string,
+    userId: string,
+  ) => {
     var id = 0;
     try {
       const token = localStorage.getItem("token");
@@ -34,7 +38,7 @@ const Board: React.FC = () => {
 
     dispatch({
       type: "ADD_POSTIT",
-      payload: { id, questionId, content },
+      payload: { id, questionId, content, userId },
     });
   };
 
@@ -49,7 +53,13 @@ const Board: React.FC = () => {
             {/* En-tête de la question */}
             <div
               className="font-semibold text-gray-700 mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded bg-gray-50 sticky top-0 z-10"
-              onClick={() => handleAddPostIt(question.id, "")}
+              onClick={() =>
+                handleAddPostIt(
+                  question.id,
+                  "",
+                  localStorage.getItem("userId") ?? "",
+                )
+              }
             >
               {question.content}
             </div>
@@ -68,6 +78,7 @@ const Board: React.FC = () => {
                   id={postIt.id}
                   content={postIt.content}
                   hidden={postIt.hidden}
+                  userId={postIt.userId}
                 />
               ))}
             </div>

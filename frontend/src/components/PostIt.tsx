@@ -1,18 +1,28 @@
 import React, { useState } from "react";
 import { useRetro } from "../contexts/RetroContext";
-import { Trash2 } from "lucide-react";
+import { Trash2, EyeOff, Eye } from "lucide-react";
 
 interface PostItProps {
   questionId: number;
   id: string;
   content: string;
   hidden: boolean;
+  userId: string;
 }
 
-const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
+const PostIt: React.FC<PostItProps> = ({
+  questionId,
+  id,
+  content,
+  hidden: initialHidden,
+  userId,
+}) => {
   const { dispatch } = useRetro();
   const [isEditing, setIsEditing] = useState(content === "");
   const [editedContent, setEditedContent] = useState(content);
+  const [hidden, setHidden] = useState(initialHidden);
+
+  const currentUserId = localStorage.getItem("userId");
 
   const handleSave = async () => {
     setIsEditing(false);
@@ -33,11 +43,42 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
           id,
           question_id: questionId,
           content: editedContent,
-          is_visible: true,
+          is_visible: !hidden,
         }),
       });
     } catch (err) {
-      console.error("Erreur:", err);
+      console.error("Erreur lors de la sauvegarde :", err);
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    const token = localStorage.getItem("token");
+    const newHiddenState = !hidden;
+
+    try {
+      await fetch(`/postits/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id,
+          question_id: questionId,
+          content: editedContent,
+          is_visible: !newHiddenState, // Inverse de l'état caché
+        }),
+      });
+
+      // Mettre à jour l'état local
+      setHidden(newHiddenState);
+
+      dispatch({
+        type: "UPDATE_POSTIT_CONTENT",
+        payload: { questionId, postItId: id, content: editedContent },
+      });
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour de la visibilité :", err);
     }
   };
 
@@ -53,7 +94,7 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (err) {
-      console.error("Erreur:", err);
+      console.error("Erreur lors de la suppression :", err);
     }
   };
 
@@ -65,8 +106,8 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
         minHeight: "150px",
         maxHeight: "300px",
         overflowY: "auto",
-        borderLeft: "8px solid #FCD34D", // Aspect "déchirure"
-        transform: "rotate(-2deg)", // Légère inclinaison pour un effet réaliste
+        borderLeft: "8px solid #FCD34D",
+        transform: "rotate(-2deg)",
       }}
     >
       {isEditing ? (
@@ -82,33 +123,31 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
           onDoubleClick={() => setIsEditing(true)}
           className="whitespace-pre-wrap break-words"
         >
-          {hidden ? (
-            <span className="italic text-gray-500">Caché</span>
-          ) : (
-            <p>{content}</p>
-          )}
+          <p>{content}</p>
         </div>
       )}
 
-      <div className="absolute top-2 right-2 flex space-x-2">
-        <button
-          onClick={() =>
-            dispatch({
-              type: "TOGGLE_POSTIT_VISIBILITY",
-              payload: { questionId, postItId: id },
-            })
-          }
-          className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition"
-        >
-          {hidden ? "Dévoiler" : "Cacher"}
-        </button>
-        <button
-          onClick={handleDelete}
-          className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
+      {String(currentUserId) === String(userId) && (
+        <div className="absolute top-2 right-2 flex space-x-2">
+          <button
+            onClick={handleToggleVisibility}
+            className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition flex items-center"
+          >
+            {hidden ? (
+              <Eye size={16} className="mr-1" />
+            ) : (
+              <EyeOff size={16} className="mr-1" />
+            )}
+            {hidden ? "Dévoiler" : "Cacher"}
+          </button>
+          <button
+            onClick={handleDelete}
+            className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

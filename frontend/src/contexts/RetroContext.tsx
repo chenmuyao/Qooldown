@@ -6,6 +6,7 @@ interface PostIt {
   id: string;
   content: string;
   hidden: boolean;
+  userId: string;
 }
 
 // Structure d'une Question
@@ -24,7 +25,12 @@ interface RetroState {
 type Action =
   | {
       type: "ADD_POSTIT";
-      payload: { id: number; questionId: number; content: string };
+      payload: {
+        id: number;
+        questionId: number;
+        content: string;
+        userId: string;
+      };
     }
   | {
       type: "UPDATE_POSTIT_CONTENT";
@@ -55,7 +61,7 @@ const RetroContext = createContext<{
 const retroReducer = (state: RetroState, action: Action): RetroState => {
   switch (action.type) {
     case "ADD_POSTIT": {
-      const { id, questionId, content } = action.payload;
+      const { id, questionId, content, userId } = action.payload;
       return {
         ...state,
         questions: state.questions.map((question) =>
@@ -68,6 +74,7 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                     id: id.toString(),
                     content,
                     hidden: false, // Visible par défaut
+                    userId,
                   },
                 ],
               }
@@ -130,6 +137,7 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
     }
 
     case "SET_DATA":
+      console.log("Données transformées :", action.payload);
       return action.payload;
 
     default:
