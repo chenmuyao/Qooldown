@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Board from "../components/Board";
 import { useRetro } from "../contexts/RetroContext";
+import ConfettiButton from "../components/Cofetti";
 
 const Retro: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,9 +43,12 @@ const Retro: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-700 via-blue-800 to-indigo-900 text-white p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">
-        Rétrospective #{id}
-      </h2>
+      <div>
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          Rétrospective #{id}
+        </h2>
+        <ConfettiButton />
+      </div>
       <Board />
     </div>
   );
