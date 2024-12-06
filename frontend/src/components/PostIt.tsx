@@ -135,6 +135,7 @@ const PostIt: React.FC<PostItProps> = ({
         overflowY: "auto",
         borderLeft: "8px solid #FCD34D",
         transform: "rotate(-2deg)",
+        margin: "30px",
       }}
     >
       {/* Conteneur pour le contenu du post-it */}
