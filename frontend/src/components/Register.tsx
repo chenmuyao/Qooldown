@@ -15,7 +15,7 @@ const Register: React.FC = () => {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error("Failed to login");
+      throw new Error("Failed to register");
     } else {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.id);

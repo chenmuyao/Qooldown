@@ -42,7 +42,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-center mb-6">
-          {isRegister ? "Inscription" : "Login"}
+          {isRegister ? "Inscription" : "Connexion"}
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

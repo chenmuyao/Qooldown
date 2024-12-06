@@ -16,7 +16,7 @@ const ConfettiButton = () => {
         onClick={handleButtonClick}
         className="bg-white text-blue-500 px-4 py-2 rounded hover:bg-gray-100 my-3"
       >
-        Je m'ennuie
+        🎉 🎉 🎉
       </button>
       {showConfetti && (
         <Confetti

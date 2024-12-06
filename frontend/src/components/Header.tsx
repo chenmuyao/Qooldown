@@ -17,13 +17,18 @@ const Header: React.FC = () => {
         <nav>
           <ul className="flex space-x-4">
             <li>
-              <Link to="/" className="hover:underline">
-                Accueil
+              <Link to="/" className="font-bold">
+                Antoine D.
               </Link>
             </li>
             <li>
-              <Link to="/retro/123" className="hover:underline">
-                Exemple de Rétrospective
+              <Link to="/" className="hover:underline">
+                &
+              </Link>
+            </li>
+            <li>
+              <Link to="/" className="font-bold">
+                Muyao C.
               </Link>
             </li>
           </ul>
@@ -33,7 +38,13 @@ const Header: React.FC = () => {
         <div>
           <button
             onClick={() => navigate("/register")}
-            className="bg-white text-blue-500 px-4 py-2 rounded hover:bg-gray-100"
+            className="bg-white text-blue-500 px-4 py-2 rounded hover:bg-gray-100 mx-5"
+          >
+            Inscription
+          </button>
+          <button
+            onClick={() => navigate("/login")}
+            className="bg-white text-blue-500 px-4 py-2 rounded hover:bg-gray-100 mx-5"
           >
             Connexion
           </button>

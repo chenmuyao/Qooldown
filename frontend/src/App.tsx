@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import Retro from "./pages/Retro";
 import Header from "./components/Header";
 import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
 import RetroListPage from "./pages/retroList";
 import CreateTemplate from "./pages/CreateTemplate";
 import TemplateListPage from "./pages/TemplateList";
@@ -28,6 +29,7 @@ const App: React.FC = () => {
               <Route path="/retro/:id" element={<Retro />} />
               <Route path="/create-template" element={<CreateTemplate />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/retroList" element={<RetroListPage />} />
               <Route path="/templateList" element={<TemplateListPage />} />
               <Route path="*" element={<Navigate to="/" />} />

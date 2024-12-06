@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const handleLogin = async (username: string, password: string) => {
-    const response = await fetch("/login", {
+    const response = await fetch("/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,8 +17,10 @@ const Login: React.FC = () => {
     if (!response.ok) {
       throw new Error("Failed to login");
     } else {
-      localStorage.setItem("token", data.token);
-      navigate("/gameList");
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("userId", data.data.id);
+      localStorage.setItem("userName", data.data.username);
+      navigate("/home");
       //navigate(`/game/${data.gameId}`);
     }
   };
@@ -27,3 +29,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+

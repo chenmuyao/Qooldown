@@ -110,7 +110,9 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 			Code: CodeOK,
 			Msg:  "successful login",
 			Data: loginData{
-				Token: token,
+				Token:    token,
+				Username: u.Username,
+				ID:       u.ID,
 			},
 		})
 	case service.ErrInvalidUserOrPassword:
