@@ -35,7 +35,9 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 }
 
 type loginData struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	Username string `json:"username"`
+	ID       string `json:"id"`
 }
 
 func (h *UserHandler) SignUp(ctx *gin.Context) {
@@ -67,7 +69,9 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 			Code: CodeOK,
 			Msg:  "signup success",
 			Data: loginData{
-				Token: token,
+				Token:    token,
+				Username: req.Username,
+				ID:       ctx.Param("id"),
 			},
 		})
 	case service.ErrDuplicatedUser:
@@ -117,12 +121,6 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 	default:
 		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
 	}
-}
-
-func (h *UserHandler) getUserIDFromJWT(ctx *gin.Context) int64 {
-	uc := ctx.MustGet("user").(UserClaims)
-
-	return uc.UID
 }
 
 func (h *UserHandler) getJWTToken(uid int64) (string, error) {

@@ -23,6 +23,7 @@ type RetroService interface {
 	GetRetros(ctx context.Context) ([]repository.Retro, error)
 	GetRetroByID(ctx context.Context, tid int64, uid int64) (repository.Retro, error)
 	DeleteRetroByID(ctx context.Context, tid int64, uid int64) error
+	GetTopVotePostits(ctx context.Context, rid int64, n int) ([]repository.Postit, error)
 
 	CreatePostit(ctx context.Context, postit PostitCreate, uid int64) (repository.Postit, error)
 	DeletePostitByID(ctx context.Context, pid int64, uid int64) error
@@ -141,6 +142,14 @@ func (r *retroService) GetRetroByID(
 		}
 	}
 	return retro, nil
+}
+
+func (r *retroService) GetTopVotePostits(
+	ctx context.Context,
+	rid int64,
+	n int,
+) ([]repository.Postit, error) {
+	return r.repo.GetTopVotePostits(ctx, rid, n)
 }
 
 // }}}

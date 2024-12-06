@@ -33,6 +33,7 @@ func (h *RetroHandler) RegisterRoutes(server *gin.Engine) {
 	retros.GET("/", h.GetRetros)
 	retros.GET("/:id", h.GetRetroByID)
 	retros.DELETE("/:id", h.DeleteRetroByID)
+	retros.GET("/:id/top", h.GetTopVotePostits)
 
 	postits := server.Group("/postits")
 	postits.POST("/", h.CreatePostit)
@@ -356,6 +357,53 @@ func (h *RetroHandler) DeleteRetroByID(ctx *gin.Context) {
 	}
 }
 
+func (h *RetroHandler) GetTopVotePostits(ctx *gin.Context) {
+	nStr := ctx.Query("n")
+	n, err := strconv.Atoi(nStr)
+	if err != nil {
+		slog.Error("wrong top number", "number", n, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong top n",
+		})
+		return
+	}
+
+	idStr := ctx.Param("id")
+
+	rid, err := strconv.Atoi(idStr)
+	if err != nil {
+		slog.Error("wrong retro id", "id", rid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "wrong retro id",
+		})
+		return
+	}
+
+	postits, err := h.svc.GetTopVotePostits(ctx, int64(rid), n)
+	switch err {
+	case service.ErrIDNotFound:
+		slog.Error("retro id not found", "id", rid, "err", err)
+		ctx.JSON(http.StatusBadRequest, Result{
+			Code: CodeUserSide,
+			Msg:  "id not found",
+		})
+		return
+	case nil:
+		ctx.JSON(http.StatusOK, Result{
+			Code: CodeOK,
+			Msg:  "get top success",
+			Data: postits,
+		})
+		return
+	default:
+		slog.Error("get ton n", "err", err)
+		ctx.JSON(http.StatusInternalServerError, InternalServerErrorResult)
+		return
+	}
+}
+
 func (h *RetroHandler) CreatePostit(ctx *gin.Context) {
 	// type Req struct {
 	// 	QuestionID int64  `json:"question_id" binding:"required"`
@@ -544,10 +592,6 @@ func (h *RetroHandler) VotePostitByID(ctx *gin.Context) {
 }
 
 // TODO: Nice to have ...
-
-func (h *RetroHandler) GetTopVotePostits(ctx *gin.Context) {
-	// Top N
-}
 
 func (h *RetroHandler) AddPostitResolution(ctx *gin.Context) {
 }

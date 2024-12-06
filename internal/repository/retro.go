@@ -109,6 +109,7 @@ type RetroRepository interface {
 	DeletePostitByID(ctx context.Context, pid int64) error
 	UpdatePostit(ctx context.Context, p Postit) (Postit, error)
 	VotePostitByID(ctx context.Context, pid int64) error
+	GetTopVotePostits(ctx context.Context, rid int64, n int) ([]Postit, error)
 }
 
 type GORMRetroRepository struct {
@@ -260,6 +261,28 @@ func (repo *GORMRetroRepository) VotePostitByID(ctx context.Context, pid int64) 
 		return nil
 	})
 	return err
+}
+
+func (repo *GORMRetroRepository) GetTopVotePostits(
+	ctx context.Context,
+	rid int64,
+	n int,
+) ([]Postit, error) {
+	var postits []Postit
+
+	err := repo.db.Table("postits").
+		Select("postits.*").
+		Joins("JOIN questions ON questions.id = postits.question_id").
+		Joins("JOIN retros ON retros.id = questions.retro_id").
+		Where("retros.id = ?", rid).
+		Order("postits.votes DESC").
+		Limit(n).
+		Find(&postits).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return postits, nil
 }
 
 // }}}
