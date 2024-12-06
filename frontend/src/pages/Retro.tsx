@@ -30,10 +30,10 @@ const Retro: React.FC = () => {
               ...postIt,
               userId: postIt.owner_id, // Renomme owner_id en userId
               votes: postIt.votes || 0, // Ajout du nombre de votes, défaut à 0
+
             })),
           }),
         );
-
         dispatch({
           type: "SET_DATA",
           payload: { questions: transformedQuestions },
