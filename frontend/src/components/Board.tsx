@@ -70,14 +70,14 @@ const Board: React.FC = () => {
             </div>
 
             {/* Conteneur scrollable pour les Post-its */}
-<div
-  className="grid gap-6 overflow-y-auto"
-  style={{
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", // Grille dynamique
-    gridAutoRows: "minmax(100px, auto)", // Hauteur minimum pour éviter les chevauchements
-    maxHeight: "calc(100% - 50px)", // Ajustement de la hauteur pour le scroll
-  }}
->
+            <div
+              className="grid gap-6 overflow-y-auto"
+              style={{
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", // Grille dynamique
+                gridAutoRows: "minmax(100px, auto)", // Hauteur minimum pour éviter les chevauchements
+                maxHeight: "calc(100% - 50px)", // Ajustement de la hauteur pour le scroll
+              }}
+            >
               {question.postIts.map((postIt) => (
                 <PostIt
                   key={postIt.id}

@@ -22,7 +22,7 @@ const PostIt: React.FC<PostItProps> = ({
   const { dispatch } = useRetro();
   const [isEditing, setIsEditing] = useState(content === "");
   const [editedContent, setEditedContent] = useState(content);
-  const [hidden, setHidden] = useState(initialHidden);
+  const [hidden, setHidden] = useState(true);
   const [localVotes, setLocalVotes] = useState(votes);
 
   const currentUserId = localStorage.getItem("userId");
