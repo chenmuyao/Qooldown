@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRetro } from "../contexts/RetroContext";
-import { Trash2, EyeOff, Eye } from "lucide-react";
+import { Trash2, EyeOff, Eye, ThumbsUp } from "lucide-react";
 
 interface PostItProps {
   questionId: number;
@@ -8,6 +8,7 @@ interface PostItProps {
   content: string;
   hidden: boolean;
   userId: string;
+  votes?: number; // Add votes to the props
 }
 
 const PostIt: React.FC<PostItProps> = ({
@@ -16,11 +17,13 @@ const PostIt: React.FC<PostItProps> = ({
   content,
   hidden: initialHidden,
   userId,
+  votes = 0, // Default to 0 if not provided
 }) => {
   const { dispatch } = useRetro();
   const [isEditing, setIsEditing] = useState(content === "");
   const [editedContent, setEditedContent] = useState(content);
   const [hidden, setHidden] = useState(initialHidden);
+  const [localVotes, setLocalVotes] = useState(votes);
 
   const currentUserId = localStorage.getItem("userId");
 
@@ -48,6 +51,31 @@ const PostIt: React.FC<PostItProps> = ({
       });
     } catch (err) {
       console.error("Erreur lors de la sauvegarde :", err);
+    }
+  };
+
+  const handleVote = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/postits/${id}/vote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLocalVotes(data.votes);
+
+        dispatch({
+          type: "UPDATE_POSTIT_VOTES",
+          payload: { questionId, postItId: id, votes: data.votes },
+        });
+      }
+    } catch (err) {
+      console.error("Erreur lors du vote :", err);
     }
   };
 
@@ -130,29 +158,41 @@ const PostIt: React.FC<PostItProps> = ({
       </div>
 
       {/* Barre de boutons en bas */}
-      {String(currentUserId) === String(userId) && (
-        <div className="flex justify-between items-center mt-2 border-t border-yellow-300 pt-2">
-          <div className="flex space-x-2">
-            <button
-              onClick={handleToggleVisibility}
-              className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition flex items-center"
-            >
-              {hidden ? (
-                <Eye size={16} className="mr-1" />
-              ) : (
-                <EyeOff size={16} className="mr-1" />
-              )}
-              {hidden ? "Dévoiler" : "Cacher"}
-            </button>
-            <button
-              onClick={handleDelete}
-              className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+      <div className="flex justify-between items-center mt-2 border-t border-yellow-300 pt-2">
+        <div className="flex items-center space-x-2">
+          {/* Vote button */}
+          <button
+            onClick={handleVote}
+            className="bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 transition flex items-center"
+          >
+            <ThumbsUp size={16} className="mr-1" />
+            {localVotes}
+          </button>
+
+          {String(currentUserId) === String(userId) && (
+            <>
+              <button
+                onClick={handleToggleVisibility}
+                className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition flex items-center"
+              >
+                {hidden ? (
+                  <Eye size={16} className="mr-1" />
+                ) : (
+                  <EyeOff size={16} className="mr-1" />
+                )}
+                {hidden ? "Dévoiler" : "Cacher"}
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
+              >
+                <Trash2 size={16} />
+              </button>
+            </>
+          )}
+
         </div>
-      )}
+      </div>
     </div>
   );
 };

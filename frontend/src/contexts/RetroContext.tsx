@@ -7,7 +7,7 @@ interface PostIt {
   content: string;
   hidden: boolean;
   userId: string;
-  votes: number;
+  votes?: number; // Add votes to the interface
 }
 
 // Structure d'une Question
@@ -37,6 +37,10 @@ type Action =
   | {
       type: "UPDATE_POSTIT_CONTENT";
       payload: { questionId: number; postItId: string; content: string };
+    }
+  | {
+      type: "UPDATE_POSTIT_VOTES";
+      payload: { questionId: number; postItId: string; votes: number };
     }
   | {
       type: "TOGGLE_POSTIT_VISIBILITY";
@@ -85,7 +89,9 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                     content,
                     hidden: false, // Visible par défaut
                     userId,
-                    votes,
+
+                    votes, // Add votes to the new post-it
+
                   },
                 ],
               }
@@ -96,8 +102,26 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
 
     // Autres cas précédents restent identiques...
 
-    case "VOTE_POSTIT": {
-      const { questionId, postItId, currentVotes } = action.payload;
+
+    case "UPDATE_POSTIT_VOTES": {
+      const { questionId, postItId, votes } = action.payload;
+      return {
+        ...state,
+        questions: state.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                postIts: question.postIts.map((postIt) =>
+                  postIt.id === postItId ? { ...postIt, votes } : postIt,
+                ),
+              }
+            : question,
+        ),
+      };
+    }
+
+    case "TOGGLE_POSTIT_VISIBILITY": {
+      const { questionId, postItId } = action.payload;
       return {
         ...state,
         questions: state.questions.map((question) =>
