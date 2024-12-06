@@ -7,6 +7,7 @@ interface PostIt {
   content: string;
   hidden: boolean;
   userId: string;
+  votes?: number; // Add votes to the interface
 }
 
 // Structure d'une Question
@@ -30,11 +31,16 @@ type Action =
         questionId: number;
         content: string;
         userId: string;
+        votes?: number;
       };
     }
   | {
       type: "UPDATE_POSTIT_CONTENT";
       payload: { questionId: number; postItId: string; content: string };
+    }
+  | {
+      type: "UPDATE_POSTIT_VOTES";
+      payload: { questionId: number; postItId: string; votes: number };
     }
   | {
       type: "TOGGLE_POSTIT_VISIBILITY";
@@ -61,7 +67,7 @@ const RetroContext = createContext<{
 const retroReducer = (state: RetroState, action: Action): RetroState => {
   switch (action.type) {
     case "ADD_POSTIT": {
-      const { id, questionId, content, userId } = action.payload;
+      const { id, questionId, content, userId, votes = 0 } = action.payload;
       return {
         ...state,
         questions: state.questions.map((question) =>
@@ -75,6 +81,7 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                     content,
                     hidden: false, // Visible par défaut
                     userId,
+                    votes, // Add votes to the new post-it
                   },
                 ],
               }
@@ -93,6 +100,23 @@ const retroReducer = (state: RetroState, action: Action): RetroState => {
                 ...question,
                 postIts: question.postIts.map((postIt) =>
                   postIt.id === postItId ? { ...postIt, content } : postIt,
+                ),
+              }
+            : question,
+        ),
+      };
+    }
+
+    case "UPDATE_POSTIT_VOTES": {
+      const { questionId, postItId, votes } = action.payload;
+      return {
+        ...state,
+        questions: state.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                postIts: question.postIts.map((postIt) =>
+                  postIt.id === postItId ? { ...postIt, votes } : postIt,
                 ),
               }
             : question,

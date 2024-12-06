@@ -10,7 +10,6 @@ const Board: React.FC = () => {
     content: string,
     userId: string,
   ) => {
-    var id = 0;
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/postits", {
@@ -27,19 +26,25 @@ const Board: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch templates.");
+        throw new Error("Échec de la création du post-it");
       }
 
       const data = await response.json();
-      id = data.data.id;
-    } catch (err: any) {
-      console.error("Error:", err);
-    }
+      const id = data.data.id;
 
-    dispatch({
-      type: "ADD_POSTIT",
-      payload: { id, questionId, content, userId },
-    });
+      dispatch({
+        type: "ADD_POSTIT",
+        payload: {
+          id,
+          questionId,
+          content,
+          userId,
+          votes: 0, // Initial votes set to 0
+        },
+      });
+    } catch (err: any) {
+      console.error("Erreur lors de l'ajout du post-it :", err);
+    }
   };
 
   return (
@@ -68,7 +73,7 @@ const Board: React.FC = () => {
             <div
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-min overflow-y-auto"
               style={{
-                maxHeight: "calc(100% - 50px)", // Ajuste en fonction de l'espace disponible
+                maxHeight: "calc(100% - 50px)",
               }}
             >
               {question.postIts.map((postIt) => (
@@ -79,6 +84,7 @@ const Board: React.FC = () => {
                   content={postIt.content}
                   hidden={postIt.hidden}
                   userId={postIt.userId}
+                  votes={postIt.votes}
                 />
               ))}
             </div>

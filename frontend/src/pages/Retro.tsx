@@ -20,13 +20,14 @@ const Retro: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        // Transforme les données pour mapper owner_id à userId
+        // Transforme les données pour mapper owner_id à userId et inclure les votes
         const transformedQuestions = data.data.questions.map(
           (question: any) => ({
             ...question,
             postIts: question.postIts.map((postIt: any) => ({
               ...postIt,
               userId: postIt.owner_id, // Renomme owner_id en userId
+              votes: postIt.votes || 0, // Ajout du nombre de votes, défaut à 0
             })),
           }),
         );
