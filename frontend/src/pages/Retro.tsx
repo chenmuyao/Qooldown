@@ -10,33 +10,30 @@ const Retro: React.FC = () => {
   useEffect(() => {
     if (!id) return;
     const token = localStorage.getItem("token");
-    // Fetch des données initiales depuis l'API
     fetch(`/retros/${id}`, {
-      method: "GET", // Méthode de la requête (GET ici)
+      method: "GET",
       headers: {
-        "Content-Type": "application/json", // Indiquer que la requête attend du JSON
-        Authorization: `Bearer ${token}`, // Ajouter le token dans l'en-tête
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        // On s'assure que data a la bonne structure avant de le passer au dispatch
-        const payload = {
-          questions: data.data.questions || [], // Assurez-vous que la réponse contient bien des questions
-        };
-        console.log(payload);
-
-        // Dispatch des données dans le contexte
-        dispatch({ type: "SET_DATA", payload });
+        dispatch({
+          type: "SET_DATA",
+          payload: { questions: data.data.questions || [] },
+        });
       })
-      .catch((error) => {
-        console.error("Erreur lors du chargement des données :", error);
-      });
+      .catch((error) =>
+        console.error("Erreur lors du chargement des données :", error),
+      );
   }, [id, dispatch]);
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Rétrospective #{id}</h2>
+    <div className="min-h-screen bg-gradient-to-r from-purple-700 via-blue-800 to-indigo-900 text-white p-6">
+      <h2 className="text-3xl font-bold mb-6 text-center">
+        Rétrospective #{id}
+      </h2>
       <Board />
     </div>
   );

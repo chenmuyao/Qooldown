@@ -3,7 +3,7 @@ import { useRetro } from "../contexts/RetroContext";
 import { Trash2 } from "lucide-react";
 
 interface PostItProps {
-  questionId: number; // Ajout de l'id de la question
+  questionId: number;
   id: string;
   content: string;
   hidden: boolean;
@@ -14,125 +14,101 @@ const PostIt: React.FC<PostItProps> = ({ questionId, id, content, hidden }) => {
   const [isEditing, setIsEditing] = useState(content === "");
   const [editedContent, setEditedContent] = useState(content);
 
-  const handleDoubleClick = () => setIsEditing(true);
-
-  const handleEditChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedContent(e.target.value);
-  };
-
-  const handleEditSave = async () => {
+  const handleSave = async () => {
     setIsEditing(false);
-    console.log("test");
     dispatch({
       type: "UPDATE_POSTIT_CONTENT",
-      payload: { questionId, postItId: id, content: editedContent }, // Ajout de questionId dans l'action
+      payload: { questionId, postItId: id, content: editedContent },
     });
+
     const token = localStorage.getItem("token");
     try {
-      console.log(id);
-      const response = await fetch(`/postits/${id}`, {
+      await fetch(`/postits/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          id: id,
+          id,
           question_id: questionId,
           content: editedContent,
           is_visible: true,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to update postit.");
-      }
-
-      const data = await response.json();
-      console.log(data);
-    } catch (err: any) {
-      console.error("Error:", err);
+    } catch (err) {
+      console.error("Erreur:", err);
     }
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Voulez-vous vraiment supprimer ce post-it ?",
-    );
-    if (confirmDelete) {
-      dispatch({
-        type: "DELETE_POSTIT",
-        payload: { questionId, postItId: id }, // Ajout de questionId dans l'action
+    if (!window.confirm("Supprimer ce post-it ?")) return;
+
+    dispatch({ type: "DELETE_POSTIT", payload: { questionId, postItId: id } });
+
+    const token = localStorage.getItem("token");
+    try {
+      await fetch(`/postits/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const token = localStorage.getItem("token");
-      try {
-        console.log(id);
-        const response = await fetch(`/postits/${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to delete postit.");
-        }
-
-        const data = await response.json();
-        console.log(data);
-      } catch (err: any) {
-        console.error("Error:", err);
-      }
+    } catch (err) {
+      console.error("Erreur:", err);
     }
   };
 
-  const handleToggleVisibility = () => {
-    dispatch({
-      type: "TOGGLE_POSTIT_VISIBILITY",
-      payload: { questionId, postItId: id }, // Ajout de questionId dans l'action
-    });
-    // Ici, vous pourriez ajouter l'émission d'un événement socket
-  };
-
   return (
-    <div className="bg-yellow-200 border border-yellow-400 rounded shadow p-2 m-2 relative">
-      <div
-        className="absolute -top-2 -right-2 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-        title="Supprimer le post-it"
-      >
-        <button
-          onClick={handleDelete}
-          className="text-red-500 hover:text-red-700"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>{" "}
+    <div
+      className="relative bg-yellow-200 text-black font-sans shadow-lg rounded-lg p-4 hover:shadow-xl transition-all"
+      style={{
+        width: "200px",
+        minHeight: "150px",
+        maxHeight: "300px",
+        overflowY: "auto",
+        borderLeft: "8px solid #FCD34D", // Aspect "déchirure"
+        transform: "rotate(-2deg)", // Légère inclinaison pour un effet réaliste
+      }}
+    >
       {isEditing ? (
         <textarea
           value={editedContent}
-          onChange={handleEditChange}
-          onBlur={handleEditSave}
-          className="w-full h-full border border-gray-300 rounded p-1"
+          onChange={(e) => setEditedContent(e.target.value)}
+          onBlur={handleSave}
+          className="w-full h-full bg-yellow-100 text-black border-none resize-none focus:outline-none p-2 rounded"
           autoFocus
-          placeholder="Écrivez votre note..."
         />
       ) : (
-        <>
+        <div
+          onDoubleClick={() => setIsEditing(true)}
+          className="whitespace-pre-wrap break-words"
+        >
           {hidden ? (
-            <div className="text-gray-500 italic">Caché</div>
+            <span className="italic text-gray-500">Caché</span>
           ) : (
-            <div onDoubleClick={handleDoubleClick}>{content}</div>
+            <p>{content}</p>
           )}
-
-          <button
-            onClick={handleToggleVisibility}
-            className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded"
-          >
-            {hidden ? "Dévoiler" : "Cacher"}
-          </button>
-        </>
+        </div>
       )}
+
+      <div className="absolute top-2 right-2 flex space-x-2">
+        <button
+          onClick={() =>
+            dispatch({
+              type: "TOGGLE_POSTIT_VISIBILITY",
+              payload: { questionId, postItId: id },
+            })
+          }
+          className="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition"
+        >
+          {hidden ? "Dévoiler" : "Cacher"}
+        </button>
+        <button
+          onClick={handleDelete}
+          className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
     </div>
   );
 };
