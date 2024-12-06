@@ -18,7 +18,7 @@ export const useWebSocket = (url: string, onMessage: (data: any) => void) => {
 
     socket.onopen = () => console.log("WebSocket connected");
     socket.onclose = () => console.log("WebSocket disconnected");
-    socket.onerror = (error) => console.log("error: " + error)
+    socket.onerror = (error) => console.log("error: " + error);
 
     return () => {
       socket.close();

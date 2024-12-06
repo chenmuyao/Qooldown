@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Board from "../components/Board";
 import { useRetro } from "../contexts/RetroContext";
@@ -7,6 +7,7 @@ import ConfettiButton from "../components/Cofetti";
 const Retro: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { dispatch } = useRetro();
+  const [retroName, setRetroName] = useState<string>("");
 
   useEffect(() => {
     if (!id) return;
@@ -20,7 +21,8 @@ const Retro: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        // Transforme les données pour mapper owner_id à userId et inclure les votes
+        setRetroName(data.data.name);
+
         const transformedQuestions = data.data.questions.map(
           (question: any) => ({
             ...question,
@@ -46,7 +48,7 @@ const Retro: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-r from-purple-700 via-blue-800 to-indigo-900 text-white p-6">
       <div>
         <h2 className="text-3xl font-bold mb-6 text-center">
-          Rétrospective #{id}
+          {retroName ? `Rétrospective : ${retroName}` : `Rétrospective #{id}`}
         </h2>
         <ConfettiButton />
       </div>
