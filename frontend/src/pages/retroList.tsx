@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../contexts/SocketContext";
 
 interface Retro {
   id: number;
@@ -8,17 +7,17 @@ interface Retro {
 }
 
 const RetroListPage: React.FC = () => {
-  //const socket = useSocket(); // Utilisation du contexte WebSocket
   const navigate = useNavigate();
   const [retros, setRetros] = useState<Retro[]>([]);
-  const [creatingRetro, setCreatingRetro] = useState(false);
-  const [newRetroId, setNewRetroId] = useState<number | null>(null);
-  const [retroCreated, setRetroCreated] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch retros on component mount
   useEffect(() => {
-    // Fetch initial retro list
     const fetchRetros = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const token = localStorage.getItem("token");
         const response = await fetch("/retros", {
           method: "GET",
@@ -28,71 +27,71 @@ const RetroListPage: React.FC = () => {
           },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data);
-          const retrosList = data.data.map((retro: any) => ({
-            id: retro.id,
-            name: retro.name,
-          }));
-          setRetros(retrosList);
+        if (!response.ok) {
+          throw new Error("Failed to fetch retros.");
         }
-      } catch (error) {
-        console.error("Error fetching retros:", error);
+
+        const data = await response.json();
+        const retrosList = data.data.map((retro: any) => ({
+          id: retro.id,
+          name: retro.name,
+        }));
+        setRetros(retrosList);
+      } catch (err: any) {
+        setError(err.message || "An error occurred while fetching retros.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchRetros();
-
-    // Gestion des messages WebSocket pour la mise à jour de la liste des rétros et la création d'une nouvelle rétro
-  }, [creatingRetro]);
-
-  useEffect(() => {
-    if (retroCreated && newRetroId !== null) {
-      navigate(`/retro/${newRetroId}/lobby`);
-      setRetroCreated(false);
-    }
-  }, [retroCreated, newRetroId, navigate]);
+  }, []);
 
   const handleJoinRetro = (retroId: number) => {
     navigate(`/retro/${retroId}`);
   };
 
   return (
-    <div className="retro-list-page min-h-screen bg-yellow-50 p-6 flex flex-col items-center">
-      <h1 className="text-3xl text-orange-600 font-bold mb-6">
-        🎉 Select a Retro 🎉
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8 flex flex-col items-center">
+      <h1 className="text-5xl font-bold text-white mb-10 animate-slide-up">
+        🌟 Rejoignez une Rétrospective 🌟
       </h1>
-      <div className="w-full max-w-2xl space-y-4">
-        <div className="retro-list space-y-2">
-          {retros.length > 0 ? (
-            retros.map((retro) => (
+
+      <div className="w-full max-w-4xl">
+        {isLoading ? (
+          <div className="flex justify-center">
+            <p className="text-gray-400 animate-pulse">
+              Chargement des rétros...
+            </p>
+          </div>
+        ) : error ? (
+          <p className="text-center text-red-500">{error}</p>
+        ) : retros.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {retros.map((retro) => (
               <div
                 key={retro.id}
-                className="retro-item p-4 bg-white rounded-lg shadow-md flex justify-between items-center hover:bg-yellow-100 transition"
+                className="relative bg-gradient-to-r from-purple-500 to-indigo-500 p-6 rounded-xl shadow-lg transform transition hover:-translate-y-2 hover:shadow-2xl animate-slide-up"
               >
-                <div>
-                  <h2 className="text-lg font-semibold text-orange-700">
-                    {retro.id}
-                  </h2>
-                  <p className="text-sm text-gray-700">{retro.name}</p>
-                </div>
+                <h2 className="text-xl font-semibold text-white mb-2">
+                  {retro.name}
+                </h2>
+                <p className="text-gray-200 text-sm">ID: {retro.id}</p>
+
                 <button
-                  className="join-retro-button bg-green-500 text-white py-1 px-4 rounded-full hover:bg-green-600 transition"
+                  className="absolute bottom-4 right-4 bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition"
                   onClick={() => handleJoinRetro(retro.id)}
                 >
-                  Join
+                  Rejoindre
                 </button>
               </div>
-            ))
-          ) : (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 items-center">
-                No retro available. Create one to start!
-              </p>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex justify-center items-center h-40">
+            <p className="text-gray-400">Aucune rétrospective disponible.</p>
+          </div>
+        )}
       </div>
     </div>
   );

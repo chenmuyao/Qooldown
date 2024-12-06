@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRetro } from "../contexts/RetroContext"; // Assurez-vous que ce chemin est correct
+import { useRetro } from "../contexts/RetroContext";
 
 interface Template {
   id: number;
@@ -9,7 +9,7 @@ interface Template {
 
 const TemplateListPage: React.FC = () => {
   const navigate = useNavigate();
-  const { dispatch } = useRetro(); // Utilisation du contexte pour gérer l'état global
+  const { dispatch } = useRetro();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [retroName, setRetroName] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(
@@ -19,7 +19,6 @@ const TemplateListPage: React.FC = () => {
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch initial template list
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
@@ -40,11 +39,12 @@ const TemplateListPage: React.FC = () => {
         }
 
         const data = await response.json();
-        const templatesList = data.data.map((template: any) => ({
-          id: template.id,
-          name: template.name,
-        }));
-        setTemplates(templatesList);
+        setTemplates(
+          data.data.map((template: any) => ({
+            id: template.id,
+            name: template.name,
+          })),
+        );
       } catch (err: any) {
         setError(err.message || "An error occurred while fetching templates.");
       } finally {
@@ -89,7 +89,6 @@ const TemplateListPage: React.FC = () => {
 
       const data = await response.json();
 
-      // Injection des données dans RetroState
       dispatch({
         type: "SET_DATA",
         payload: {
@@ -98,12 +97,11 @@ const TemplateListPage: React.FC = () => {
             content: q.content,
             postits: q.postits || [],
           })),
-          //postIts: [], // Les post-its existants peuvent être initialisés ici si nécessaires
         },
       });
+      console.log(data.data.id);
 
-      // Redirection vers la page de la rétro
-      navigate(`/retros/${data.id}`);
+      navigate(`/retros/${data.data.id.toString()}`);
     } catch (err: any) {
       console.error("Error:", err);
       alert(err.message || "An error occurred while creating the retro.");
@@ -113,72 +111,75 @@ const TemplateListPage: React.FC = () => {
   };
 
   return (
-    <div className="template-list-page min-h-screen bg-yellow-50 p-6 flex flex-col items-center">
-      <h1 className="text-3xl text-orange-600 font-bold mb-6">
-        🎉 Select a Template 🎉
-      </h1>
+    <div className="template-list-page min-h-screen bg-gray-900 text-white px-6 py-10">
+      <div className="max-w-4xl mx-auto text-center">
+        <h1 className="text-4xl font-bold text-white mb-8">
+          🌟 Choisissez un Template 🌟
+        </h1>
+        <p className="text-lg text-gray-400 mb-12">
+          Lancez une nouvelle rétrospective en sélectionnant un modèle existant.
+        </p>
+      </div>
 
-      <div className="w-full max-w-2xl space-y-4">
+      <div className="max-w-4xl mx-auto">
         {isLoading ? (
-          <p className="text-center text-gray-500">Loading templates...</p>
+          <p className="text-center text-gray-500">
+            Chargement des templates...
+          </p>
         ) : error ? (
           <p className="text-center text-red-500">{error}</p>
         ) : templates.length > 0 ? (
-          <div className="template-list space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="template-item p-4 bg-white rounded-lg shadow-md flex justify-between items-center hover:bg-yellow-100 transition"
+                className="bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300"
               >
-                <div>
-                  <h2 className="text-lg font-semibold text-orange-700">
-                    {template.name}
-                  </h2>
-                </div>
+                <h2 className="text-xl font-semibold text-white mb-2">
+                  {template.name}
+                </h2>
                 <button
-                  className="join-template-button bg-green-500 text-white py-1 px-4 rounded-full hover:bg-green-600 transition"
+                  className="bg-blue-600 text-white py-2 px-4 rounded-full hover:bg-blue-500 transition"
                   onClick={() => openModal(template.id)}
                 >
-                  Create Retro
+                  Créer une rétro
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex justify-center items-center h-40">
-            <p className="text-gray-500 items-center">
-              No templates available. Create one to start!
-            </p>
-          </div>
+          <p className="text-center text-gray-500">
+            Aucun modèle disponible. Créez-en un pour commencer !
+          </p>
         )}
       </div>
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4">Enter Retro Name</h2>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-2xl font-semibold mb-4">Nom de la Rétro</h2>
             <input
               type="text"
-              className="w-full border border-gray-300 rounded-md p-2 mb-4"
-              placeholder="Retro Name"
+              className="w-full border border-gray-600 rounded-md p-2 mb-4 bg-gray-900 text-gray-300"
+              placeholder="Entrez un nom pour la rétro"
               value={retroName}
               onChange={(e) => setRetroName(e.target.value)}
             />
             <div className="flex justify-end space-x-4">
               <button
-                className="bg-gray-300 text-gray-700 py-1 px-4 rounded hover:bg-gray-400"
+                className="bg-gray-600 text-gray-200 py-2 px-4 rounded hover:bg-gray-500 transition"
                 onClick={closeModal}
               >
-                Cancel
+                Annuler
               </button>
               <button
-                className="join-template-button bg-green-500 text-white py-1 px-4 rounded-full hover:bg-green-600 transition"
+                className="bg-green-600 text-white py-2 px-4 rounded-full hover:bg-green-500 transition"
                 onClick={() =>
                   selectedTemplateId && handleCreateRetro(selectedTemplateId)
                 }
               >
-                Create
+                Créer
               </button>
             </div>
           </div>

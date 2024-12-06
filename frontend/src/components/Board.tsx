@@ -18,7 +18,7 @@ const Board: React.FC = () => {
         body: JSON.stringify({
           question_id: questionId,
           content: content,
-          is_visible: true,
+          is_visible: false,
         }),
       });
 
@@ -27,12 +27,11 @@ const Board: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log(data);
       id = data.data.id;
     } catch (err: any) {
       console.error("Error:", err);
     }
-    console.log(id);
+
     dispatch({
       type: "ADD_POSTIT",
       payload: { id, questionId, content },
@@ -40,29 +39,41 @@ const Board: React.FC = () => {
   };
 
   return (
-    <div className="flex w-full h-screen bg-gray-100 border rounded-md">
-      {state.questions.map((question) => (
-        <div
-          key={question.id}
-          className="flex-1 p-4 border-r last:border-r-0 flex flex-col"
-        >
+    <div className="w-full h-screen bg-gray-100 p-6 overflow-hidden">
+      <div className="flex flex-wrap w-full h-full bg-white rounded shadow">
+        {state.questions.map((question) => (
           <div
-            className="font-semibold text-gray-700 mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded"
-            onClick={() => handleAddPostIt(question.id, "")}
+            key={question.id}
+            className="flex-1 flex flex-col p-4 border-r border-gray-300 last:border-r-0"
           >
-            {question.content}
+            {/* En-tête de la question */}
+            <div
+              className="font-semibold text-gray-700 mb-4 cursor-pointer hover:bg-gray-200 p-2 rounded bg-gray-50 sticky top-0 z-10"
+              onClick={() => handleAddPostIt(question.id, "")}
+            >
+              {question.content}
+            </div>
+
+            {/* Conteneur scrollable pour les Post-its */}
+            <div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-min overflow-y-auto"
+              style={{
+                maxHeight: "calc(100% - 50px)", // Ajuste en fonction de l'espace disponible
+              }}
+            >
+              {question.postIts.map((postIt) => (
+                <PostIt
+                  key={postIt.id}
+                  questionId={question.id}
+                  id={postIt.id}
+                  content={postIt.content}
+                  hidden={postIt.hidden}
+                />
+              ))}
+            </div>
           </div>
-          {question.postIts.map((postIt) => (
-            <PostIt
-              key={postIt.id}
-              questionId={question.id} // Passer questionId ici
-              id={postIt.id}
-              content={postIt.content}
-              hidden={postIt.hidden}
-            />
-          ))}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
